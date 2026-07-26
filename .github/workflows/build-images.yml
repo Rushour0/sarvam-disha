@@ -68,3 +68,29 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,scope=${{ matrix.name }},mode=max
+
+  deploy:
+    # Only after BOTH images are pushed. fail-fast is off on the build matrix,
+    # so `needs` alone is not enough — a half-succeeded matrix must not deploy
+    # a new web image against a stale agent.
+    needs: build
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify deploy
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_DEPLOY_UUID: ${{ secrets.COOLIFY_DEPLOY_UUID }}
+        run: |
+          # HTTPS, not the plain-HTTP form of this endpoint: the bearer token
+          # would otherwise cross the network in the clear.
+          status=$(curl -sS -o response.json -w '%{http_code}' \
+            -X GET "https://coolify.rushour0.com/api/v1/deploy?uuid=${COOLIFY_DEPLOY_UUID}&force=true" \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}")
+          echo "HTTP $status"
+          cat response.json
+          echo
+          if [ "$status" -ge 300 ]; then
+            echo "::error::Coolify deploy request failed with HTTP $status"
+            exit 1
+          fi
