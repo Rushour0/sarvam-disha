@@ -49,7 +49,13 @@ export function App({ appConfig }: AppProps) {
   });
 
   const tokenSource = useMemo(() => {
-    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
+    // Only use the sandbox source when the endpoint is a NON-EMPTY string. The
+    // Docker build defines NEXT_PUBLIC_CONN_DETAILS_ENDPOINT as "" (empty but
+    // defined), and `typeof "" === 'string'` is true — which routed the token
+    // request into the sandbox source, where `new URL("", origin)` resolves to
+    // "/", posts there, and gets the HTML page back ("Error fetching connection
+    // details"). A truthy check falls through to the real /api/token route.
+    return process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT
       ? getSandboxTokenSource(appConfig, language)
       : TokenSource.endpoint('/api/token');
   }, [appConfig, language]);
