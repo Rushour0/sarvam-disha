@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f2efe7" />
+    <meta property="og:title" content="Disha — Sarvam Epoch build deck" />
+    <meta property="og:description" content="How Disha, a voice career counsellor for tier-3/4 India, was built solo in four hours with Sarvam — mapped to the Epoch rubric." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23171714'/%3E%3Cpath d='M16 32h32M32 16v32' stroke='%23ff5c35' stroke-width='8'/%3E%3C/svg%3E" />
+    <title>Disha — Sarvam Epoch build deck</title>
+<meta name="description" content="How Disha, a voice career counsellor for tier-3/4 India, was built solo in four hours with Sarvam — mapped to the Epoch rubric." />
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper: #f2efe7;
+    --ink: #171714;
+    --orange: #ff5c35;
+    --ground: var(--paper);
+    --text: var(--ink);
+    --muted: rgb(23 23 20 / 60%);
+    --faint: rgb(23 23 20 / 40%);
+    --line: rgb(23 23 20 / 16%);
+    --hair: rgb(23 23 20 / 8%);
+    --panel: rgb(23 23 20 / 3.5%);
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #131311;
+      --text: #f2efe7;
+      --muted: rgb(242 239 231 / 62%);
+      --faint: rgb(242 239 231 / 42%);
+      --line: rgb(242 239 231 / 18%);
+      --hair: rgb(242 239 231 / 9%);
+      --panel: rgb(242 239 231 / 4%);
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #f2efe7; --text: #171714;
+    --muted: rgb(23 23 20 / 60%); --faint: rgb(23 23 20 / 40%);
+    --line: rgb(23 23 20 / 16%); --hair: rgb(23 23 20 / 8%); --panel: rgb(23 23 20 / 3.5%);
+  }
+  :root[data-theme="dark"] {
+    --ground: #131311; --text: #f2efe7;
+    --muted: rgb(242 239 231 / 62%); --faint: rgb(242 239 231 / 42%);
+    --line: rgb(242 239 231 / 18%); --hair: rgb(242 239 231 / 9%); --panel: rgb(242 239 231 / 4%);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    font-synthesis: none;
+    overflow: hidden;
+  }
+  ::selection { background: var(--orange); color: var(--ink); }
+
+  /* ---------- deck shell ---------- */
+  .deck { position: fixed; inset: 0; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: clamp(1.6rem, 4.5vh, 3.4rem) clamp(1.4rem, 5vw, 5rem) clamp(3.6rem, 8vh, 4.6rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .slide.active { display: flex; animation: rise .5s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .frame { width: min(100%, 1180px); margin: auto; width: 100%; max-width: 1180px; }
+  .frame { margin-inline: auto; }
+
+  /* eyebrow / labels */
+  .eyebrow {
+    display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+    font-family: var(--mono); font-size: clamp(.6rem, 1.1vw, .72rem);
+    letter-spacing: .16em; text-transform: uppercase; color: var(--faint);
+    margin: 0 0 clamp(1.2rem, 3.5vh, 2.4rem);
+  }
+  .eyebrow i { width: 34px; height: 1px; background: var(--orange); flex: none; }
+  .eyebrow .dim { color: var(--text); }
+  .weight {
+    font-family: var(--mono); color: var(--ink); background: var(--orange);
+    padding: .18em .5em; letter-spacing: .04em; border-radius: 2px; font-weight: 500;
+  }
+
+  h1, h2 { margin: 0; font-weight: 300; letter-spacing: -0.055em; text-wrap: balance; line-height: .96; }
+  h1 { font-size: clamp(2.9rem, 8.5vw, 7.4rem); letter-spacing: -0.065em; line-height: .9; }
+  h2 { font-size: clamp(2rem, 5vw, 4.1rem); }
+  h1 em, h2 em, .accent { color: var(--orange); font-style: normal; }
+  .lede { max-width: 62ch; color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.22rem); line-height: 1.6; }
+  p { text-wrap: pretty; }
+
+  .kicker { font-family: var(--mono); font-size: clamp(.62rem,1vw,.72rem); letter-spacing: .14em; text-transform: uppercase; color: var(--orange); }
+
+  /* two column */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 4vw, 3.5rem); margin-top: clamp(1.4rem, 4vh, 2.8rem); }
+  .cols p { max-width: 54ch; color: var(--muted); line-height: 1.7; margin: 0; font-size: clamp(.95rem,1.15vw,1.05rem); }
+  .cols b, .lead-in { color: var(--text); font-weight: 500; }
+
+  /* proof list */
+  .proof { list-style: none; margin: clamp(1.4rem,4vh,2.6rem) 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .proof li { display: grid; grid-template-columns: minmax(140px, 1.4fr) 4fr; gap: clamp(1rem,3vw,2.5rem); padding: clamp(.85rem,2vh,1.35rem) 0; border-bottom: 1px solid var(--hair); align-items: baseline; }
+  .proof .what { font-size: clamp(1.05rem,1.7vw,1.5rem); font-weight: 300; letter-spacing: -.02em; }
+  .proof .how { color: var(--muted); line-height: 1.6; font-size: clamp(.9rem,1.1vw,1rem); margin: 0; }
+  .proof .how code, .mono { font-family: var(--mono); font-size: .86em; color: var(--text); background: var(--panel); padding: .08em .35em; border-radius: 3px; }
+  .proof .tag { display: inline-block; font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--orange); margin-left: .1rem; }
+
+  /* stat band */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: clamp(1.6rem,4vh,2.8rem); background: var(--line); border: 1px solid var(--line); }
+  .stats > div { background: var(--ground); padding: clamp(1.1rem,3vh,1.9rem); }
+  .stats strong { display: block; font-family: var(--mono); color: var(--orange); font-weight: 400; font-size: clamp(2.1rem,4.5vw,3.4rem); letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+  .stats span { display: block; max-width: 18ch; margin-top: .6rem; color: var(--muted); font-size: clamp(.78rem,.95vw,.9rem); line-height: 1.4; }
+
+  /* pipeline / architecture */
+  .pipe { display: flex; flex-wrap: wrap; align-items: stretch; gap: .75rem; margin-top: clamp(1.4rem,4vh,2.6rem); }
+  .node { flex: 1 1 150px; border: 1px solid var(--line); padding: 1rem 1.1rem; background: var(--panel); border-radius: 3px; min-width: 0; }
+  .node .n-lab { font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+  .node .n-title { margin: .5rem 0 .35rem; font-size: clamp(1rem,1.5vw,1.28rem); font-weight: 300; letter-spacing: -.02em; }
+  .node .n-sub { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.45; }
+  .node.hot { border-color: var(--orange); }
+  .node.hot .n-lab { color: var(--orange); }
+  .flowarrow { align-self: center; color: var(--faint); font-family: var(--mono); font-size: 1.1rem; }
+
+  /* timeline */
+  .tl { list-style: none; margin: clamp(1.4rem,4vh,2.4rem) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); }
+  .tl li { position: relative; padding: 1.4rem 1.1rem 1.4rem 0; border-right: 1px solid var(--hair); }
+  .tl li:nth-child(4n) { border-right: 0; }
+  .tl li::before { content: ""; position: absolute; top: -5px; left: 0; width: 10px; height: 10px; background: var(--orange); }
+  .tl time { font-family: var(--mono); font-size: clamp(1.15rem,2vw,1.7rem); letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+  .tl strong { display: block; margin-top: 1rem; font-weight: 500; font-size: .9rem; }
+  .tl span { display: block; margin-top: .4rem; color: var(--muted); font-size: .82rem; line-height: 1.45; }
+
+  /* scorecard table */
+  .card-table { width: 100%; border-collapse: collapse; margin-top: clamp(1.2rem,3.5vh,2.2rem); font-size: clamp(.82rem,1.05vw,1rem); }
+  .card-table th, .card-table td { text-align: left; padding: clamp(.55rem,1.6vh,.9rem) .8rem; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  .card-table thead th { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 400; border-bottom: 1px solid var(--line); }
+  .card-table .dim { font-weight: 500; white-space: nowrap; }
+  .card-table .mult { font-family: var(--mono); color: var(--orange); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .card-table td.proof-cell { color: var(--muted); line-height: 1.5; }
+
+  blockquote { margin: clamp(1.6rem,4vh,3rem) 0 0; border-left: 3px solid var(--orange); padding: .3rem 0 .3rem 1.4rem; font-size: clamp(1.35rem,2.6vw,2.1rem); font-weight: 300; line-height: 1.24; letter-spacing: -.02em; max-width: 30ch; }
+  blockquote cite { display: block; margin-top: 1rem; font-family: var(--mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-style: normal; }
+
+  /* hero */
+  .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .hero-body { margin-top: auto; margin-bottom: auto; }
+  .hero-sub { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; margin-top: clamp(1.8rem,5vh,3rem); padding-top: 1.4rem; border-top: 1px solid var(--line); }
+  .hero-sub div { }
+  .hero-sub .k { font-family: var(--mono); font-size: .62rem; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); }
+  .hero-sub .v { margin-top: .35rem; font-size: clamp(.95rem,1.3vw,1.15rem); }
+  .hero-sub .v b { color: var(--orange); font-weight: 400; }
+  .wave { display: inline-flex; align-items: flex-end; gap: 3px; height: 40px; }
+  .wave i { width: 4px; background: var(--orange); opacity: .5; height: var(--h); }
+  .wave i:nth-child(3n) { opacity: .85; }
+
+  .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: clamp(1.4rem,4vh,2.6rem); }
+  .two-up > div { background: var(--ground); padding: clamp(1.1rem,3vh,1.9rem); }
+  .two-up h3 { margin: .6rem 0 .6rem; font-weight: 300; font-size: clamp(1.1rem,1.8vw,1.5rem); letter-spacing: -.02em; }
+  .two-up p { margin: 0; color: var(--muted); line-height: 1.6; font-size: clamp(.88rem,1.1vw,1rem); }
+  .two-up .n-lab { font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--orange); }
+
+  .finale { background: var(--orange); color: var(--ink); }
+  .finale .eyebrow, .finale .eyebrow i { color: rgb(23 23 20 / 60%); }
+  .finale .eyebrow i { background: var(--ink); }
+  .finale h2 { color: var(--ink); }
+  .finale .lede { color: rgb(23 23 20 / 78%); }
+  .finale .mono { background: rgb(23 23 20 / 10%); color: var(--ink); }
+
+  /* roadmap badge */
+  .roadmap { font-family: var(--mono); color: var(--orange); border: 1px solid var(--orange); padding: .18em .5em; letter-spacing: .1em; border-radius: 2px; font-size: .82em; }
+  .shipped { font-family: var(--mono); color: var(--ink); background: var(--orange); padding: .18em .5em; letter-spacing: .06em; border-radius: 2px; font-size: .82em; }
+
+  /* compact CSS flowchart */
+  .fc { margin: clamp(1.1rem, 3.2vh, 2rem) auto 0; max-width: 940px; display: flex; flex-direction: column; gap: .7rem; }
+  .fc-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .45rem; }
+  .fc-node { display: flex; flex-direction: column; gap: .12rem; border: 1px solid var(--line); background: var(--panel); border-radius: 5px; padding: .5rem .7rem; font-family: var(--mono); font-size: clamp(.66rem, .95vw, .76rem); letter-spacing: .01em; line-height: 1.15; text-align: left; }
+  .fc-node em { font-style: normal; color: var(--muted); font-size: .82em; }
+  .fc-node.hot { border-color: var(--orange); background: color-mix(in srgb, var(--orange) 12%, transparent); }
+  .fc-a { color: var(--orange); font-family: var(--mono); font-size: 1.05rem; line-height: 1; flex: none; }
+  .fc-cluster { display: inline-flex; flex-direction: column; gap: .35rem; border: 1px dashed var(--orange); border-radius: 6px; padding: .45rem .55rem .55rem; }
+  .fc-clab { font-family: var(--mono); font-size: .58rem; letter-spacing: .13em; text-transform: uppercase; color: var(--orange); }
+  .fc-trio { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+  .fc-loops { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; margin-top: .25rem; }
+  .fc-loop { display: flex; gap: .55rem; align-items: flex-start; border: 1px dashed var(--orange); border-radius: 5px; padding: .55rem .75rem; font-family: var(--mono); font-size: clamp(.62rem, .88vw, .72rem); letter-spacing: .01em; line-height: 1.45; color: var(--muted); }
+  .fc-loop b { color: var(--orange); font-weight: 400; font-size: 1.05em; line-height: 1.2; }
+  .fc-loop strong { color: var(--text); font-weight: 500; }
+  @media (max-width: 820px) { .fc-loops { grid-template-columns: 1fr; } }
+
+  /* capture / produce panels */
+  .capgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: clamp(1.3rem, 4vh, 2.4rem); }
+  .capgrid > div { background: var(--ground); padding: clamp(1.1rem, 3vh, 1.7rem); }
+  .capgrid .cap-lab { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--orange); }
+  .capgrid h3 { margin: .55rem 0 1rem; font-weight: 300; font-size: clamp(1.15rem, 1.9vw, 1.6rem); letter-spacing: -.02em; }
+  .caprow { display: grid; grid-template-columns: minmax(96px, auto) 1fr; gap: .5rem 1rem; align-items: baseline; padding: .5rem 0; border-top: 1px solid var(--hair); }
+  .caprow:first-of-type { border-top: 0; }
+  .caprow dt { font-size: .82rem; font-weight: 500; }
+  .caprow dd { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.45; }
+  .caprow dd .mono { font-size: .82em; }
+
+  /* growth stages */
+  .stages { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: clamp(1.3rem, 4vh, 2.4rem); }
+  .stages > div { background: var(--ground); padding: clamp(1.1rem, 3vh, 1.8rem); display: flex; flex-direction: column; }
+  .stages .st-n { font-family: var(--mono); color: var(--orange); font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -.05em; }
+  .stages h3 { margin: .5rem 0 .6rem; font-weight: 400; font-size: clamp(1rem, 1.5vw, 1.25rem); letter-spacing: -.02em; }
+  .stages p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.55; }
+  .stages .arc { margin-top: auto; padding-top: 1rem; font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+  @media (max-width: 820px) { .capgrid, .stages { grid-template-columns: 1fr; } }
+
+  /* ---------- chrome ---------- */
+  .chrome { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem clamp(1rem,4vw,2.4rem); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--ground) 86%, transparent); backdrop-filter: blur(8px); font-family: var(--mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dots button { width: 9px; height: 9px; padding: 0; border: 1px solid var(--faint); background: transparent; border-radius: 50%; cursor: pointer; transition: background .18s, border-color .18s, transform .18s; }
+  .dots button:hover { border-color: var(--orange); transform: scale(1.2); }
+  .dots button[aria-current="true"] { background: var(--orange); border-color: var(--orange); }
+  .nav { display: flex; align-items: center; gap: .5rem; color: var(--muted); }
+  .nav button { font-family: var(--mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: .4rem .7rem; cursor: pointer; min-height: 32px; }
+  .nav button:hover { border-color: var(--orange); color: var(--orange); }
+  .nav button:disabled { opacity: .35; cursor: default; border-color: var(--line); color: var(--muted); }
+  .count { color: var(--faint); font-variant-numeric: tabular-nums; }
+  .count b { color: var(--text); font-weight: 400; }
+  .brand { color: var(--faint); }
+  .brand b { color: var(--orange); font-weight: 400; }
+  .theme-toggle { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 3px; padding: .4rem .6rem; cursor: pointer; font-family: var(--mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; min-height: 32px; }
+  .theme-toggle:hover { border-color: var(--orange); color: var(--orange); }
+
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--orange); z-index: 40; transition: width .35s cubic-bezier(.2,.7,.2,1); }
+
+  a { color: var(--orange); text-underline-offset: 4px; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+
+  @media (max-width: 820px) {
+    body { overflow: auto; }
+    .deck { position: static; }
+    .slide { position: static; display: none; min-height: 100svh; }
+    .slide.active { display: flex; }
+    .cols, .two-up { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+    .tl { grid-template-columns: 1fr 1fr; }
+    .tl li:nth-child(4n) { border-right: 1px solid var(--hair); }
+    .tl li:nth-child(2n) { border-right: 0; }
+    .proof li { grid-template-columns: 1fr; gap: .3rem; }
+    .pipe { flex-direction: column; }
+    .flowarrow { transform: rotate(90deg); align-self: flex-start; }
+    .chrome .dots { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active { animation: none; }
+    * { transition-duration: .01ms !important; }
+  }
+</style>
+  </head>
+  <body>
+    <div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide active" aria-label="Title">
+    <div class="frame" style="display:flex; flex-direction:column; height:100%;">
+      <div class="hero-top">
+        <div class="eyebrow" style="margin:0;"><i></i> Sarvam Epoch Buildathon · 26.07.2026 · Razorpay Arena</div>
+        <div class="wave" aria-hidden="true">
+          <i style="--h:40%"></i><i style="--h:70%"></i><i style="--h:30%"></i><i style="--h:88%"></i><i style="--h:54%"></i><i style="--h:100%"></i><i style="--h:44%"></i><i style="--h:74%"></i><i style="--h:34%"></i>
+        </div>
+      </div>
+      <div class="hero-body">
+        <p class="kicker" style="margin:0 0 1.4rem;">A voice career counsellor for tier-3/4 India</p>
+        <h1>Disha listens the way <em>India speaks.</em><br />Hindi, Marathi, English — mixed.<br />Answers with judgment.</h1>
+      </div>
+      <div class="hero-sub">
+        <div><div class="k">Built by</div><div class="v">Rushikesh Patade · solo</div></div>
+        <div><div class="k">Time to ship</div><div class="v"><b>04h</b> · 11:35 → 15:35 IST</div></div>
+        <div><div class="k">Voice stack</div><div class="v">Sarvam Saaras v3 + Bulbul v3</div></div>
+        <div><div class="k">Scored branch</div><div class="v"><b>Voice Experience</b></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+  <section class="slide" aria-label="The problem">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">01 / The problem</span></div>
+      <h2>The hardest career question is <em>rarely about careers.</em></h2>
+      <div class="cols">
+        <p>A student says <b>“mujhe engineering karni hai.”</b> Underneath that one sentence sits a fee ceiling, a parent who won’t allow a hostel, a two-hour travel limit, and a dream borrowed from a cousin. A form captures the answer. A counsellor discovers the reason.</p>
+        <p>Today that student decides from <b>two cousins, a WhatsApp forward, and a commission agent</b> who names the colleges he’s paid to name. They are phone-first, speak Hindi or Marathi code-mixed with English, and have no trustworthy adult to ask.</p>
+      </div>
+      <blockquote>Voice wasn’t a feature. It was the only interface that made sense.</blockquote>
+    </div>
+  </section>
+
+  <!-- 3 · THE IDEA -->
+  <section class="slide" aria-label="The idea">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">02 / The idea, locked</span></div>
+      <h2>One honest conversation, in the student’s own language.</h2>
+      <p class="lede" style="margin-top:clamp(1.2rem,3.5vh,2.2rem);">A voice counsellor that asks the questions nobody asked, opens avenues they’ve never heard of, and notices when the real problem is <span class="accent">pressure — not marks.</span></p>
+      <ul class="proof">
+        <li><span class="what">The user</span><p class="how">Class 11–12 / fresh-pass student in a tier-3/4 town. Phone, no laptop. Speaks Hindi or Marathi, code-mixed.</p></li>
+        <li><span class="what">The job</span><p class="how">Leave with 2–3 viable, affordable career avenues, a plan a parent can read — and if they’re struggling, a human counsellor alerted.</p></li>
+        <li><span class="what">The state change</span><p class="how">Spoken trade-offs grounded in a closed dataset · a written student + parent summary · a flag log and escalation card in a counsellor queue.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4 · THE SARVAM UNLOCK -->
+  <section class="slide" aria-label="The Sarvam unlock">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">03 / How I leveraged Sarvam</span></div>
+      <h2>Sarvam made the hardest part feel <em>almost unfair.</em></h2>
+      <p class="lede" style="margin-top:clamp(1.2rem,3vh,2rem);">In most voice products the first hours vanish into plumbing — transcription, accents, language detection, synthetic voices that flatten emotion. The first loop worked early enough that the rest of the time went to the product’s <span class="accent">judgment.</span></p>
+      <div class="two-up">
+        <div>
+          <div class="n-lab">Saaras v3 · the ears</div>
+          <h3>Code-mixing as speech, not noise.</h3>
+          <p>A student says “fees ka issue hai, hostel afford nahi kar payenge” without adapting to the machine — and a slip into Marathi mid-sentence survives. Runs on <span class="mono">language="unknown"</span> auto-detect. 22 Indian languages, code-mixed output.</p>
+        </div>
+        <div>
+          <div class="n-lab">Bulbul v3 · the voice</div>
+          <h3>A personality people trust.</h3>
+          <p>Indian names sound right; English words inside Hindi don’t break the rhythm. When Disha slows down after a student names family pressure, the voice carries the change. 11 languages, 30+ natural voices.</p>
+        </div>
+      </div>
+      <div style="margin-top:1px; background:var(--line); border:1px solid var(--line); border-top:0;">
+        <div style="background:var(--ground); padding:clamp(1rem,3vh,1.6rem);">
+          <div class="n-lab" style="color:var(--orange)">Docs AI · the ingestion — a third Sarvam product</div>
+          <p style="margin:.55rem 0 0; color:var(--muted); line-height:1.6; font-size:clamp(.88rem,1.1vw,1rem); max-width:78ch;">The SD SEED handbook ships subsetted fonts with no Unicode map — <span class="mono">pdftotext</span> returns glyph soup. Sarvam <b style="color:var(--text);font-weight:500">Docs AI</b> reads the <em>rendered page</em> instead, so both handbooks digitize cleanly into chunks the agent later cites <span class="mono">by page</span>. It runs offline, upstream of the call — the reason <code style="font-family:var(--mono);font-size:.86em;background:var(--panel);padding:.08em .35em;border-radius:3px;">search_handbook</code> can quote a real source instead of inventing one.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · ARCHITECTURE -->
+  <section class="slide" aria-label="The system">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">04 / The system</span></div>
+      <h2>Every layer has a job, a boundary, an observable outcome.</h2>
+      <div class="pipe">
+        <div class="node"><div class="n-lab">Input</div><div class="n-title">Phone mic</div><p class="n-sub">One tap in a browser. No app, no login.</p></div>
+        <div class="flowarrow" aria-hidden="true">→</div>
+        <div class="node hot"><div class="n-lab">Sarvam · listen</div><div class="n-title">Saaras v3 STT</div><p class="n-sub">Code-mixed Hindi/Marathi → usable context.</p></div>
+        <div class="flowarrow" aria-hidden="true">→</div>
+        <div class="node"><div class="n-lab">Reason</div><div class="n-title">Agent + 12 tools</div><p class="n-sub">LiveKit worker. Elicit, ground, flag, remember.</p></div>
+        <div class="flowarrow" aria-hidden="true">→</div>
+        <div class="node hot"><div class="n-lab">Sarvam · speak</div><div class="n-title">Bulbul v3 TTS</div><p class="n-sub">A voice that belongs in the conversation.</p></div>
+      </div>
+      <ul class="proof" style="margin-top:clamp(1rem,3vh,1.8rem);">
+        <li><span class="what">Grounding</span><p class="how"><code>search_careers</code> · <code>search_handbook</code> · <code>find_scholarships</code> over a closed dataset — the advice can only be as wrong as the data.</p></li>
+        <li><span class="what">Live surface</span><p class="how">Constraint tracker, flags and refusals stream over the LiveKit <span class="mono">data channel</span> to a Next.js client — no DB on the live path.</p></li>
+        <li><span class="what">Deployed</span><p class="how">Web on Vercel · Python worker + case API on a Graviton box via Coolify. Case API has <span class="mono">no public domain</span> — it fails closed.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5b · THE WORKFLOW / FLOWCHART -->
+  <section class="slide" aria-label="The full workflow">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">05 / The full loop</span> <span style="color:var(--faint)">one call today, a counsellor that grows with the student</span></div>
+      <h2 style="font-size:clamp(1.8rem,4vw,3.2rem)">From a first vague call to a lifelong career companion.</h2>
+      <div class="fc">
+        <div class="fc-row">
+          <div class="fc-node">Phone tap<em>no app · no login</em></div>
+          <span class="fc-a" aria-hidden="true">→</span>
+          <div class="fc-cluster">
+            <span class="fc-clab">Voice call · Sarvam</span>
+            <div class="fc-trio">
+              <div class="fc-node hot">Saaras v3<em>listen · auto-detect</em></div>
+              <span class="fc-a" aria-hidden="true">⇄</span>
+              <div class="fc-node">Disha<em>reason</em></div>
+              <span class="fc-a" aria-hidden="true">⇄</span>
+              <div class="fc-node hot">Bulbul v3<em>speak</em></div>
+            </div>
+          </div>
+          <span class="fc-a" aria-hidden="true">→</span>
+          <div class="fc-node">Counselling loop<em>profile · constraints · wellbeing</em></div>
+        </div>
+        <div class="fc-row">
+          <div class="fc-node">Grounded KB<em>327 paths · 2 handbooks · 41 schemes</em></div>
+          <span class="fc-a" aria-hidden="true">→</span>
+          <div class="fc-node">Live web surface<em>tracker · flags · refusals</em></div>
+          <span class="fc-a" aria-hidden="true">→</span>
+          <div class="fc-node">Session end<em>student + parent summary · counsellor card</em></div>
+          <span class="fc-a" aria-hidden="true">→</span>
+          <div class="fc-node">Memory<em>conversations | person facts</em></div>
+        </div>
+        <div class="fc-loops">
+          <div class="fc-loop"><b aria-hidden="true">↺</b><span><strong>Live data refresh.</strong> Cron / loop engineering keeps the KB fresh — new paths &amp; scholarships, never stale. <span style="color:var(--faint)">[roadmap]</span></span></div>
+          <div class="fc-loop"><b aria-hidden="true">↺</b><span><strong>Memory → return visit.</strong> Questions evolve, the counsellor grows with the person. <span style="color:var(--faint)">[roadmap]</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5c · WHAT ONE CALL CAPTURES -->
+  <section class="slide" aria-label="What one call captures">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">06 / What it captures</span> <span style="color:var(--faint)">this is not “ask AI anything”</span></div>
+      <h2 style="font-size:clamp(1.9rem,4.4vw,3.6rem)">Every call reads more than it says back.</h2>
+      <div class="capgrid">
+        <div>
+          <div class="cap-lab">Listens for → structured signal</div>
+          <h3>What Disha quietly captures</h3>
+          <dl>
+            <div class="caprow"><dt>Profile</dt><dd>name · class · stream · interests — re-injected into the prompt so a name is never asked twice</dd></div>
+            <div class="caprow"><dt>5 constraints</dt><dd>travel · hostel · fee ceiling · family permission · scholarship dependence</dd></div>
+            <div class="caprow"><dt>Wellbeing</dt><dd>distress · family pressure · choice paralysis · self-harm — each with the verbatim quote</dd></div>
+            <div class="caprow"><dt>Facts</dt><dd>notable life facts (a parent’s work, a responsibility at home) worth guidance later</dd></div>
+            <div class="caprow"><dt>Strengths</dt><dd>2–3, each bound to the student’s <em>exact words</em> as evidence</dd></div>
+          </dl>
+        </div>
+        <div>
+          <div class="cap-lab">Produces → and refuses to invent</div>
+          <h3>What the student walks away with</h3>
+          <dl>
+            <div class="caprow"><dt>Shortlist</dt><dd>2–3 <em>exact</em> tool-returned paths — unverified ones are dropped, never spoken</dd></div>
+            <div class="caprow"><dt>Scholarships</dt><dd>only schemes whose <span class="mono">applies_to</span> fits the path under discussion</dd></div>
+            <div class="caprow"><dt>Handbook facts</dt><dd>durations, forms, entrance exams — only while naming the page citation aloud</dd></div>
+            <div class="caprow"><dt>Refusals</dt><dd>every out-of-list ask (a college, a fee, a salary) logged and auditable</dd></div>
+            <div class="caprow"><dt>Artifacts</dt><dd>student summary · parent summary (translated) · counsellor escalation card</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · VOICE EXPERIENCE 2.5x -->
+  <section class="slide" aria-label="Voice Experience">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">Voice Experience</span> <span class="weight">2.5×</span> <span style="color:var(--faint)">the scored branch</span></div>
+      <h2>Live code-mix, real turn-taking, a voice with grammar.</h2>
+      <ul class="proof">
+        <li><span class="what">Barge-in</span><p class="how">Cut Disha off mid-sentence and she stops in <b class="accent">1.2–1.4s</b> — measured across four interruptions, no degradation over three consecutive cut-ins, and she never resumes the killed sentence.</p></li>
+        <li><span class="what">Language auto-detect</span><p class="how">Saaras runs on <span class="mono">language="unknown"</span> — it understands Hindi, Marathi, English and code-mixing without the student ever adapting to the machine. Comprehension is language-agnostic; the reply-language directive rebuilds the prompt without dropping other state.</p></li>
+        <li><span class="what">She sounds like herself</span><p class="how">Hindi and Marathi mark the speaker’s gender on the verb. Disha is a woman, so the prompt forces the feminine form everywhere — <span class="mono">“main samjhaati hoon”</span>, <span class="mono">“mi sangte”</span> — never the masculine.</p></li>
+        <li><span class="what">The room got loud</span><p class="how">Browsers suppress a fan easily; nearby <em>talking</em> lives in speech frequencies and syllable rhythm. Cancelling background <b>voices</b>, not just noise, kept the demo room from reading as an interruption.</p></li>
+        <li><span class="what">Garbled input</span><p class="how">Every number, class and institution name is repeated back to confirm (<span class="mono">“gyarah-baarah class, theek?”</span>); unclear proper nouns are re-asked, never guessed.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7 · JTBD 2.5x -->
+  <section class="slide" aria-label="JTBD completion">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">JTBD completion</span> <span class="weight">2.5×</span></div>
+      <h2>A conversation that finishes the job — no builder touch.</h2>
+      <p class="lede" style="margin-top:clamp(1rem,3vh,1.8rem)">Five constraints surface through concrete life questions, never a form: <span class="accent">travel · hostel · fee ceiling · family permission · scholarship dependence.</span> Each saved the moment it becomes clear.</p>
+      <ul class="proof">
+        <li><span class="what">Not an interview</span><p class="how">Rhythm rule enforced in the prompt: after each fact, <b>give something back</b> — name a real path from <code>search_careers</code> and its trade-off — before asking at most one new question. By turn 5 the student has heard 2–3 concrete paths.</p></li>
+        <li><span class="what">The artifact</span><p class="how"><code>finish_session</code> persists a Hindi summary + a shortlist of <b>exact tool-returned paths only</b> — unverified paths are dropped, not spoken. A parent-facing version goes out translated.</p></li>
+        <li><span class="what">The handoff</span><p class="how">Any wellbeing flag logs a verbatim quote and a timestamp into a counsellor escalation card — the job isn’t “a chat reply”, it’s a state change on a second surface.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8 · CREATIVITY 1.5x -->
+  <section class="slide" aria-label="Creativity">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">Creativity</span> <span class="weight">1.5×</span></div>
+      <h2>Three reinforcing choices — and the rule lives in code.</h2>
+      <ul class="proof">
+        <li><span class="what">Indirect elicitation</span><p class="how">Constraints surface through life questions, never a form. Advice a student brings (cousin, WhatsApp, agent) is acknowledged for its care, then checked against the list — never endorsed because someone trusted said it.</p></li>
+        <li><span class="what">Closed-list discipline</span><p class="how">Every named career triggers <code>search_careers</code> first. No match → the reply <em>must begin</em> <span class="mono">“meri list mein nahi hai”</span>, then <code>log_refusal</code>, then the nearest listed option. No colleges, fees, cutoffs, or salaries — ever. Every refusal is auditable.</p></li>
+        <li><span class="what">The prompt lost — so the tool won</span><p class="how">Told in plain words to stop the career script after a frightening moment, the model gave the helpline… then asked about travel distance one turn later. <b>Instructions are a request; the tools are the rule.</b> A self-harm flag now flips a <span class="mono">safety lock</span> that makes the career tools <em>refuse</em> for the rest of the session.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9 · MEMORY 1x -->
+  <section class="slide" aria-label="Memory and context">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">Memory &amp; Context</span> <span class="weight">1×</span></div>
+      <h2>It remembers the student, not the transcript.</h2>
+      <div class="cols">
+        <p><b class="lead-in">Within the call.</b> The five constraints and the profile fill a live tracker on the student’s screen. The saved profile is re-injected into the system prompt after every <span class="mono">save_profile</span>, so a long call never asks a name twice.</p>
+        <p><b class="lead-in">Across sessions.</b> Reopening the link resumes the case — distilled facts only. <span class="mono">recall_memory</span> lets Disha reach for why an option was ruled out. By design it stores no audio; flags keep the quote and timestamp, nothing more.</p>
+      </div>
+      <ul class="proof" style="margin-top:clamp(1rem,3vh,2rem)">
+        <li><span class="what">Deliberately forgotten</span><p class="how">No audio stored. No transcripts kept. The memory boundary is a product decision, written down in <span class="mono">MEMORY-DESIGN.md</span> and enforced in the load path.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10 · IMPACT 1.5x -->
+  <section class="slide" aria-label="Impact">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">Impact</span> <span class="weight">1.5×</span></div>
+      <h2>Grounded in real data, and a real track record.</h2>
+      <p class="lede" style="margin-top:clamp(1rem,3vh,1.8rem)">The alternative isn’t nothing — it’s a <span class="accent">commission counsellor</span> naming colleges he’s paid to name. The metric that matters: % of students reaching a constraint-fit shortlist vs. an agent-fed default.</p>
+      <div class="stats">
+        <div><strong>327</strong><span>grounded career pathways</span></div>
+        <div><strong>41</strong><span>government scholarships</span></div>
+        <div><strong>02</strong><span>printed handbooks, cited by page</span></div>
+      </div>
+      <ul class="proof" style="margin-top:clamp(1rem,3vh,1.8rem)">
+        <li><span class="what">Credibility</span><p class="how">The career tree descends from <b>NaksheKadam</b>, my SIH-2022-winning project on this exact problem — data reuse with disclosed lineage, zero code reuse.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 11 · DELIGHT 1x -->
+  <section class="slide" aria-label="Delight">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">Delight</span> <span class="weight">1×</span></div>
+      <h2>At the hardest moment, it drops the checklist.</h2>
+      <div class="cols">
+        <p>When distress, family pressure or choice paralysis appears, Disha calls <span class="mono">flag_wellbeing</span> with the student’s exact words, then <b>slows down, acknowledges, and drops the constraint questions for that turn.</b> She never diagnoses, never labels — she flags and hands to a human.</p>
+        <p>For explicit self-harm language, the career conversation ends. She gives the <b>Tele-MANAS helpline 14416</b> and stays with the student in short warm sentences. The parent summary that reaches home frames the student’s constraints with respect. Honest recovery, not cheerfulness.</p>
+      </div>
+      <blockquote>Delight here is judgment under pressure — not a stock “I understand your concern.”</blockquote>
+    </div>
+  </section>
+
+  <!-- 12 · THE HONEST PART / TEST HARNESS -->
+  <section class="slide" aria-label="Testing">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">07 / The honest part</span> <span style="color:var(--faint)">I used Sarvam to test a Sarvam agent</span></div>
+      <h2>I built the ruler too — and it caught what I’d have shipped.</h2>
+      <p class="lede" style="margin-top:clamp(.8rem,2.5vh,1.6rem)">Coval and Hamming are built for English; on Marathi they score the failures that matter least reliably. So a persona bot speaks through <span class="accent">Bulbul</span>, the agent’s replies come back through <span class="accent">Saaras</span>, and every step is scored twice — assertions <em>and</em> an LLM judge — passing only if both agree. The agent under test is unmodified.</p>
+      <div class="stats">
+        <div><strong>14/22</strong><span>steps passing on assertions alone</span></div>
+        <div><strong>8/22</strong><span>surviving a reader too</span></div>
+        <div><strong>0</strong><span>lines changed in the agent under test</span></div>
+      </div>
+      <ul class="proof" style="margin-top:clamp(.9rem,2.5vh,1.6rem)">
+        <li><span class="what">It found the bug</span><p class="how">Five Marathi turns, five Hindi replies — STT auto-detected fine, but TTS was hardcoded to <span class="mono">hi-IN</span>. One line killed the whole Marathi path. A free-form call had already “passed” it.</p></li>
+        <li><span class="what">Two bugs were in the ruler</span><p class="how">A restarted worker read as a failed safety flow; a double-transcription bug blamed the agent for its own cut-off fragments. <b>Before believing a bad score, check the thing measuring it was alive.</b></p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12b · GROWS WITH THE PERSON -->
+  <section class="slide" aria-label="Grows with the person">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">08 / Where it grows — the person</span> <span class="shipped">shipped: single call + resume</span> <span class="roadmap">roadmap: the multi-year arc</span></div>
+      <h2>Not post-12 advice. A counsellor that grows with you.</h2>
+      <p class="lede" style="margin-top:clamp(.9rem,2.5vh,1.6rem)">Because conversations and person-facts are stored <em>separately</em>, Disha recalls the <span class="accent">student</span>, not a transcript — so each visit starts deeper than the last, and the questions change as the person does.</p>
+      <div class="stages">
+        <div>
+          <span class="st-n">01</span>
+          <h3>First call</h3>
+          <p>From “no idea” to “these things interest you — this is worth trying.” A first constraint-fit shortlist.</p>
+          <span class="arc">vague → a direction</span>
+        </div>
+        <div>
+          <span class="st-n">02</span>
+          <h3>They come back</h3>
+          <p>After the spoken aptitude test, Disha pushes an emerging interest a level deeper. The questions are no longer “what stream?” but “how far into this?”</p>
+          <span class="arc">a direction → a plan</span>
+        </div>
+        <div>
+          <span class="st-n">03</span>
+          <h3>The long arc</h3>
+          <p>Post-12 → degree or diploma → first jobs → career moves. The same voice, carrying everything it learned, asking the questions the next stage needs.</p>
+          <span class="arc">a plan → a career</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12c · LIVE, NEVER-STALE DATA -->
+  <section class="slide" aria-label="Live data">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">09 / Where it grows — the data</span> <span class="shipped">shipped: closed KB</span> <span class="roadmap">roadmap: the refresh loop</span></div>
+      <h2>Grounded advice is only as good as fresh data.</h2>
+      <div class="cols">
+        <p><b class="lead-in">The risk.</b> Career paths and government scholarships change every year. A static tree quietly goes stale — and a confident, out-of-date answer is worse than a refusal.</p>
+        <p><b class="lead-in">The plan.</b> Cron / loop-engineering agents that continuously discover new pathways and scholarships and fold them into the closed KB, with lineage disclosed — so the same three lookups keep returning <em>current</em> answers.</p>
+      </div>
+      <ul class="proof" style="margin-top:clamp(1rem,3vh,2rem)">
+        <li><span class="what">The guarantee holds</span><p class="how">The dataset gets fresher, but the discipline is unchanged: Disha still speaks <em>only</em> what a tool returns, still says <span class="mono">“meri list mein nahi hai”</span> for anything absent, and still logs every refusal. Fresh data widens the list — it never loosens the rule.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 13 · THE CLOCK -->
+  <section class="slide" aria-label="The clock">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">10 / The clock</span> <span style="color:var(--faint)">“a few hours” only works when you know what not to build</span></div>
+      <h2>Four hours, riskiest layer first.</h2>
+      <ol class="tl">
+        <li><time>11:35</time><strong>Idea locked</strong><span>One honest conversation, in the student’s language.</span></li>
+        <li><time>11:50</time><strong>Voice alive</strong><span>Hindi in, a natural Bulbul voice back. Riskiest layer working.</span></li>
+        <li><time>12:35</time><strong>Product, not demo</strong><span>Constraints, grounded search, memory, summary connected.</span></li>
+        <li><time>12:57</time><strong>Language followed</strong><span>A Marathi student stops being answered in Hindi.</span></li>
+        <li><time>13:40</time><strong>Boundaries held</strong><span>The wellbeing stop moved from prompt into code.</span></li>
+        <li><time>14:05</time><strong>Room got loud</strong><span>Background voices stopped counting as the student.</span></li>
+        <li><time>15:10</time><strong>She sounds like herself</strong><span>A woman’s voice needed a woman’s grammar.</span></li>
+        <li><time>15:35</time><strong>Shipped</strong><span>Images built, deploy green, conversation held under test.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 14 · SCORECARD -->
+  <section class="slide" aria-label="Rubric scorecard">
+    <div class="frame">
+      <div class="eyebrow"><i></i> <span class="dim">11 / Against the rubric</span></div>
+      <h2>Every dimension, mapped to observable proof.</h2>
+      <div style="overflow-x:auto;">
+      <table class="card-table">
+        <thead><tr><th>Dimension</th><th>Mult</th><th>Observable proof</th></tr></thead>
+        <tbody>
+          <tr><td class="dim">Voice Experience</td><td class="mult">2.5×</td><td class="proof-cell">Auto-detected Hindi/Marathi/English code-mix input · barge-in 1.2–1.4s, no resume · feminine-verb grammar · background-voice cancellation.</td></tr>
+          <tr><td class="dim">JTBD completion</td><td class="mult">2.5×</td><td class="proof-cell">Five constraints elicited conversationally → closed-list shortlist → student + parent summary, no builder touch.</td></tr>
+          <tr><td class="dim">Creativity</td><td class="mult">1.5×</td><td class="proof-cell">Indirect elicitation · auditable “not in my list” refusals · safety stop enforced in the tools, not the prompt.</td></tr>
+          <tr><td class="dim">Impact</td><td class="mult">1.5×</td><td class="proof-cell">Commission-counsellor baseline · 327 pathways / 41 scholarships · NaksheKadam SIH-2022 lineage.</td></tr>
+          <tr><td class="dim">Memory &amp; Context</td><td class="mult">1×</td><td class="proof-cell">Live constraint tracker · case resumes on reload · distilled facts only, no audio, no transcript.</td></tr>
+          <tr><td class="dim">Delight</td><td class="mult">1×</td><td class="proof-cell">Pressure moment handled with judgment — tone shift, verbatim flag, honest recovery without losing progress.</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="how" style="color:var(--faint); font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; margin-top:1.4rem;">No double-counting — in-call flow → Voice · persisted resume → Memory · refusal + flagging → Creativity · pressure handling → Delight · artifact → JTBD.</p>
+    </div>
+  </section>
+
+  <!-- 15 · CLOSE -->
+  <section class="slide finale" aria-label="Takeaway">
+    <div class="frame" style="display:flex; flex-direction:column; height:100%; justify-content:center;">
+      <div class="eyebrow" style="margin-bottom:clamp(1.4rem,4vh,2.4rem)"><i></i> The takeaway</div>
+      <h2>India-first AI should not feel like a <em style="color:var(--ink); border-bottom:3px solid var(--ink);">translation.</em></h2>
+      <p class="lede" style="margin-top:clamp(1.4rem,4vh,2.4rem); max-width:56ch;">Sarvam let me build from the student outward instead of the model inward. The language could be mixed, the thought unfinished, the accent local — the product still listened. In four hours, that’s the difference between a demo and a counsellor.</p>
+      <p style="margin-top:clamp(1.6rem,4vh,2.6rem); font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase;">Rushikesh Patade · Built with <span class="mono">Sarvam Saaras v3 · Bulbul v3 · Docs AI</span></p>
+      <p style="margin-top:1.1rem; font-family:var(--mono); font-size:.72rem; letter-spacing:.06em;"><a href="https://github.com/Rushour0/sarvam-disha" style="color:var(--ink);">github.com/Rushour0/sarvam-disha</a> &nbsp;·&nbsp; <a href="https://sarvam-blog.pages.dev/" style="color:var(--ink);">read the build story ↗</a></p>
+    </div>
+  </section>
+
+</div>
+
+<div class="chrome">
+  <div class="brand">Disha / <b>Build 01</b></div>
+  <div class="dots" id="dots" role="tablist" aria-label="Slides"></div>
+  <div class="nav">
+    <span class="count"><b id="cur">1</b> / <span id="total">19</span></span>
+    <button id="prev" aria-label="Previous slide">← Prev</button>
+    <button id="next" aria-label="Next slide">Next →</button>
+    <button class="theme-toggle" id="theme" aria-label="Toggle light or dark theme">Theme</button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+    var total = slides.length;
+    var i = 0;
+    var dotsWrap = document.getElementById("dots");
+    var cur = document.getElementById("cur");
+    var prog = document.getElementById("progress");
+    var prevBtn = document.getElementById("prev");
+    var nextBtn = document.getElementById("next");
+    document.getElementById("total").textContent = total;
+
+    slides.forEach(function (s, n) {
+      var b = document.createElement("button");
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-label", "Go to slide " + (n + 1));
+      b.addEventListener("click", function () { go(n); });
+      dotsWrap.appendChild(b);
+    });
+    var dots = Array.prototype.slice.call(dotsWrap.children);
+
+    function go(n) {
+      i = Math.max(0, Math.min(total - 1, n));
+      slides.forEach(function (s, k) { s.classList.toggle("active", k === i); });
+      dots.forEach(function (d, k) { d.setAttribute("aria-current", k === i ? "true" : "false"); });
+      cur.textContent = i + 1;
+      prog.style.width = ((i + 1) / total * 100) + "%";
+      prevBtn.disabled = i === 0;
+      nextBtn.disabled = i === total - 1;
+      var active = slides[i];
+      if (active) active.scrollTop = 0;
+    }
+
+    function next() { if (i < total - 1) go(i + 1); }
+    function prev() { if (i > 0) go(i - 1); }
+    nextBtn.addEventListener("click", next);
+    prevBtn.addEventListener("click", prev);
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); next(); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); prev(); }
+      else if (e.key === "Home") { e.preventDefault(); go(0); }
+      else if (e.key === "End") { e.preventDefault(); go(total - 1); }
+    });
+
+    // theme toggle
+    var root = document.documentElement;
+    document.getElementById("theme").addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      root.setAttribute("data-theme", isDark ? "light" : "dark");
+    });
+
+    go(0);
+  })();
+</script>
+
+  </body>
+</html>
