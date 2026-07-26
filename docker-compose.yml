@@ -34,9 +34,7 @@ services:
   # Runs once per deploy, then exits. Building the index inside the agent's
   # startup would delay the first call and re-embed on every restart.
   sarvam-indexer:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/rushour0/sarvam-disha-agent:latest
     restart: "no"
     command: ["python", "scripts/index_kb.py"]
     environment:
@@ -47,9 +45,7 @@ services:
         condition: service_healthy
 
   sarvam-agent:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/rushour0/sarvam-disha-agent:latest
     restart: unless-stopped
     command: ["python", "main.py", "start"]
     working_dir: /app/agent
@@ -68,16 +64,15 @@ services:
         condition: service_healthy
 
   sarvam-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/rushour0/sarvam-disha-agent:latest
     restart: unless-stopped
     command:
       ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8090"]
     working_dir: /app/api
+    # No SERVICE_FQDN: /cases serves phone numbers and verbatim wellbeing
+    # quotes, so the API stays on the internal network and is reached only
+    # through the web container's /api/disha proxy.
     environment:
-      # Coolify assigns a domain and configures Traefik from this variable.
-      - SERVICE_FQDN_API_8090
       - DISHA_CASES_DIR=/app/agent/cases
     volumes:
       # Read-only: the API only serves what the worker wrote.
@@ -88,6 +83,25 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+
+  sarvam-web:
+    image: ghcr.io/rushour0/sarvam-disha-web:latest
+    restart: unless-stopped
+    environment:
+      # The only service with a public domain. Coolify fills this in.
+      - SERVICE_FQDN_WEB_3000
+      - LIVEKIT_URL=${LIVEKIT_URL}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - DISHA_API_ORIGIN=http://sarvam-api:8090
+      - BLOG_ORIGIN=${BLOG_ORIGIN:-https://sarvam-blog.pages.dev}
+      # Basic auth for /counsellor and /api/disha/cases. Unset means those
+      # routes fail closed rather than serving student PII.
+      - DISHA_COUNSELLOR_USER=${DISHA_COUNSELLOR_USER:-counsellor}
+      - DISHA_COUNSELLOR_PASSWORD=${DISHA_COUNSELLOR_PASSWORD}
+    depends_on:
+      sarvam-api:
+        condition: service_healthy
 
 volumes:
   sarvam-qdrant-storage:

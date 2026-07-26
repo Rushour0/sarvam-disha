@@ -1,0 +1,69 @@
+name: Build images
+
+# Images are built here and pulled by Coolify, rather than built on the server.
+# The box is 2 vCPU with the ludexel stack already running; a Next.js build
+# there competes with whatever call is live at the time.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'agent/**'
+      - 'api/**'
+      - 'data/**'
+      - 'scripts/index_kb.py'
+      - 'web/**'
+      - 'Dockerfile'
+      - 'requirements.txt'
+      - '.github/workflows/build-images.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      # Keep going if one image fails, so a broken web build still ships a
+      # fixed agent.
+      fail-fast: false
+      matrix:
+        include:
+          - name: sarvam-disha-agent
+            dockerfile: Dockerfile
+          - name: sarvam-disha-web
+            dockerfile: web/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.name }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - uses: docker/build-push-action@v6
+        with:
+          # Root context for both: the web image needs web/, and the agent
+          # image needs agent/, api/ and data/.
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max
