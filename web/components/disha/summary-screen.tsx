@@ -122,6 +122,12 @@ export function SummaryScreen({
                 </Button>
               )}
               <Button asChild variant="ghost" className="mt-2 w-full rounded-full">
+                <Link href="/me">मेरी प्रोफ़ाइल</Link>
+              </Button>
+              <Button asChild variant="ghost" className="mt-2 w-full rounded-full">
+                <Link href="/explore">Career index</Link>
+              </Button>
+              <Button asChild variant="ghost" className="mt-2 w-full rounded-full">
                 <Link href="/counsellor">{copy.summary.counsellorView}</Link>
               </Button>
             </div>

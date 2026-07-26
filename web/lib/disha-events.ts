@@ -88,6 +88,16 @@ export interface KbEvent extends DishaEventBase {
   citations: KbCitation[];
 }
 
+/** Who the student is, as the agent learned it in conversation. Later events
+ *  carry the full accumulated profile, so the last one seen wins whole. */
+export interface ProfileEvent extends DishaEventBase {
+  type: 'profile';
+  name?: string;
+  class_level?: string;
+  stream?: string;
+  interests?: string[];
+}
+
 export interface SummaryEvent extends DishaEventBase {
   type: 'summary';
   summary_hi: string;
@@ -119,6 +129,7 @@ export type DishaEvent =
   | CareerEvent
   | ScholarshipEvent
   | KbEvent
+  | ProfileEvent
   | SummaryEvent
   | StrengthEvent
   | TestResultEvent;
@@ -138,6 +149,7 @@ export interface DishaSessionSnapshot {
   flags: FlagEvent[];
   refusals: RefusalEvent[];
   strengths: DishaStrength[];
+  profile?: ProfileEvent;
   summary?: SummaryEvent;
   testResult?: TestResultEvent;
 }
@@ -299,6 +311,19 @@ export function parseDishaEvent(value: unknown): DishaEvent | null {
             })),
           }
         : null;
+    case 'profile': {
+      const profile: ProfileEvent = {
+        type: 'profile',
+        ts: value.ts,
+        name: optionalString(value.name),
+        class_level: optionalString(value.class_level),
+        stream: optionalString(value.stream),
+        interests: isStringArray(value.interests) ? value.interests : undefined,
+      };
+      return profile.name || profile.class_level || profile.stream || profile.interests
+        ? profile
+        : null;
+    }
     case 'summary':
       return typeof value.summary_hi === 'string' &&
         isStringArray(value.shortlist) &&
@@ -398,6 +423,11 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
         break;
       case 'refusal':
         snapshot.refusals.push(event);
+        break;
+      case 'profile':
+        // Each profile event carries the whole accumulated profile, so the
+        // latest one replaces rather than merges.
+        snapshot.profile = event;
         break;
       case 'summary':
         snapshot.summary = event;

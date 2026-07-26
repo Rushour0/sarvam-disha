@@ -74,6 +74,9 @@ services:
     # through the web container's /api/disha proxy.
     environment:
       - DISHA_CASES_DIR=/app/agent/cases
+      # Signs the disha_session login cookie. Falls back to a demo value in
+      # code; set a real one in Coolify before real traffic.
+      - DISHA_SESSION_SECRET=${DISHA_SESSION_SECRET:-}
     volumes:
       # Read-only: the API only serves what the worker wrote.
       - sarvam-disha-cases:/app/agent/cases:ro

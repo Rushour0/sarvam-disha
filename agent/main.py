@@ -124,8 +124,13 @@ async def entrypoint(ctx: JobContext) -> None:
     greet = lang["greet"]
     constraints = facts["constraints"]
     notes = facts["notes"]
-    if constraints or notes:
-        parts = [f"{k}: {v}" for k, v in constraints.items()]
+    profile = facts["profile"]
+    if constraints or notes or profile:
+        parts = [
+            f"{k}: {', '.join(v) if isinstance(v, list) else v}"
+            for k, v in profile.items()
+        ]
+        parts += [f"{k}: {v}" for k, v in constraints.items()]
         parts += list(notes)
         known_line = (
             "Returning student. Personal memory already saved — do NOT re-ask "
@@ -133,7 +138,8 @@ async def entrypoint(ctx: JobContext) -> None:
         )
         greet = (
             "The student has spoken with you before. In their chosen starting "
-            "language, greet them back warmly in one short sentence, mention "
+            "language, greet them back warmly by name if you know it, in one "
+            "short sentence, mention "
             "ONE thing you remember about their situation, and ask what has "
             "changed or what they want to continue with. One question only."
         )
@@ -183,7 +189,12 @@ async def entrypoint(ctx: JobContext) -> None:
             log_metrics(ev.metrics)
 
     language_line = lang["line"] if not known_line else f"{lang['line']}\n\n{known_line}"
-    disha_agent = Disha(event_sink, language_line=language_line, case_id=case_key)
+    disha_agent = Disha(
+        event_sink,
+        language_line=language_line,
+        case_id=case_key,
+        profile=profile,
+    )
 
     # Bulbul v3 output languages the TTS may follow the student into.
     followable = {"hi-IN", "en-IN", "mr-IN", "ta-IN", "bn-IN", "gu-IN", "kn-IN",

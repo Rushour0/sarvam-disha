@@ -389,7 +389,12 @@ def load_case_facts(case_key: str) -> dict[str, object]:
     """Personal memory for a returning case: distilled facts only, per
     MEMORY-DESIGN.md — constraints and notes, never transcripts or flags."""
     path = CASES_DIR / f"{_safe_room_filename(case_key)}.json"
-    facts: dict[str, object] = {"constraints": {}, "notes": [], "had_summary": False}
+    facts: dict[str, object] = {
+        "constraints": {},
+        "notes": [],
+        "profile": {},
+        "had_summary": False,
+    }
     if not path.is_file():
         return facts
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -402,6 +407,16 @@ def load_case_facts(case_key: str) -> dict[str, object]:
             facts["constraints"][event["name"]] = event.get("value", "")
         elif etype == "note" and event.get("note"):
             facts["notes"].append(event["note"])
+        elif etype == "profile":
+            # Later events win, field by field, mirroring how save_profile
+            # merges rather than replaces.
+            facts["profile"].update(
+                {
+                    key: value
+                    for key, value in event.items()
+                    if key not in {"type", "ts"} and value
+                }
+            )
         elif etype == "summary":
             facts["had_summary"] = True
     return facts
@@ -447,6 +462,18 @@ Speak in the student's language: begin in natural, simple
 Hindi, follow them into Marathi or English, and handle code-mixing naturally.
 Your spoken replies must stay short: 1-3 sentences and exactly one question per
 turn. Sound like a conversation, never a form or checklist.
+
+Open by learning who you are talking to. In your first two turns, before any
+career talk, get their name and where they are in school — which class they are
+in now, or which class they just finished, and the stream if they already have
+one. Ask it the way a person does, one thing at a time, never as a form: greet,
+ask their name, use their name from then on in every few sentences. Then ask
+what they are thinking about doing next. As soon as you know the name and the
+class, call save_profile. If they also name a stream, a subject they like, or a
+career they are curious about, put it in the same call — and update it with
+save_profile again later whenever a better answer appears. A student who has not
+told you their class yet must be asked before turn three; everything else in
+this prompt waits behind those two facts.
 
 Learn the same five practical constraints around career options, never as
 prerequisites: how far they can travel from home, whether staying in a hostel is
@@ -622,10 +649,16 @@ class Disha(Agent):
         event_sink: EventSink,
         language_line: str = "",
         case_id: str = "",
+        profile: dict[str, object] | None = None,
     ) -> None:
         self._event_sink = event_sink
         self._case_id = case_id
         self._seen_paths: set[str] = set()
+        # Accumulated across calls so a later save_profile that carries only the
+        # stream does not blank out the name learned in turn one. Seeded from
+        # the case file for a returning student, so the profile line is in the
+        # prompt from the greeting onward.
+        self._profile: dict[str, object] = dict(profile or {})
         self._seen_citations: set[str] = set()
         self._revealed_strengths = False
         self._safety_lock = False
@@ -646,9 +679,37 @@ class Disha(Agent):
             DISHA_INSTRUCTIONS,
             self._language_line,
             SAFETY_LOCK_LINE if self._safety_lock else "",
+            self._profile_line(),
             self._language_directive,
         ]
         return "\n\n".join(part for part in parts if part)
+
+    def _profile_line(self) -> str:
+        """Who the student is, restated in the prompt after every save_profile.
+
+        The tool result alone does not survive a long call: it scrolls out of
+        the recent window and the model starts asking for the name a second
+        time. Persisting to Qdrant is fire-and-forget and only helps the NEXT
+        call, so the same facts have to sit in the instructions for this one.
+        """
+        if not self._profile:
+            return ""
+        fields = {
+            "name": "Name",
+            "class_level": "Class",
+            "stream": "Stream",
+            "interests": "Interests",
+        }
+        known = [
+            f"{label}: {', '.join(value) if isinstance(value, list) else value}"
+            for key, label in fields.items()
+            if (value := self._profile.get(key))
+        ]
+        return (
+            "WHO YOU ARE TALKING TO — already saved, never ask for these again: "
+            + "; ".join(known)
+            + ". Use their name naturally in conversation."
+        )
 
     async def set_language_directive(self, directive: str) -> None:
         """Follow the student into a new language without losing other state."""
@@ -800,6 +861,67 @@ class Disha(Agent):
             retrieval.remember_fact(self._case_id, "constraint", name, value)
         )
         return f"Saved {name}."
+
+    @function_tool
+    async def save_profile(
+        self,
+        name: str = "",
+        class_level: str = "",
+        stream: str = "",
+        interests: list[str] | None = None,
+    ) -> str:
+        """Save who the student is, as soon as they say it.
+
+        Call this the moment a name or a class is known, and call it again
+        whenever a better answer appears — later calls only overwrite the
+        fields they carry, so passing one field never erases the others.
+
+        Args:
+            name: The student's own name, spelled as they said it.
+            class_level: Where they are in school, e.g. "10th passed",
+                "class 11", "12th appearing".
+            stream: Their current stream if they already have one.
+            interests: Short phrases for what they enjoy or are curious about.
+        """
+        if self._safety_lock:
+            return CAREER_TOOLS_LOCKED
+
+        fields = {
+            "name": name.strip(),
+            "class_level": class_level.strip(),
+            "stream": stream.strip(),
+        }
+        cleaned = {key: value for key, value in fields.items() if value}
+        cleaned_interests = [item.strip() for item in (interests or []) if item.strip()]
+        if cleaned_interests:
+            cleaned["interests"] = cleaned_interests
+
+        if not cleaned:
+            return (
+                "Nothing saved: every field was empty. Re-call save_profile with "
+                "at least the student's name or their class."
+            )
+
+        self._profile.update(cleaned)
+        await self._event_sink.emit({"type": "profile", **self._profile})
+        await self.update_instructions(self.compose_instructions())
+        for key, value in cleaned.items():
+            retrieval.fire_and_forget(
+                retrieval.remember_fact(
+                    self._case_id,
+                    "profile",
+                    key,
+                    ", ".join(value) if isinstance(value, list) else str(value),
+                )
+            )
+
+        missing = [key for key in ("name", "class_level") if key not in self._profile]
+        if missing:
+            return (
+                f"Profile saved. Still unknown: {', '.join(missing)} — ask for it "
+                "naturally within the next turn or two."
+            )
+        return "Profile saved. Use their name in conversation from now on."
 
     @function_tool
     async def flag_wellbeing(self, type: WellbeingType, quote: str) -> str:

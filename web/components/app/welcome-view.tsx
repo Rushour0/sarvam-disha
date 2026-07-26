@@ -62,12 +62,26 @@ export const WelcomeView = ({
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-5">
         <DishaBrand showTagline={false} />
-        <Link
-          href="/counsellor"
-          className="text-disha-leaf hover:text-disha-ink focus-visible:ring-disha-sun focus-visible:ring-offset-disha-wash dark:hover:text-disha-sun min-h-11 touch-manipulation rounded-full px-3 py-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          {welcome.counsellorView}
-        </Link>
+        <nav className="flex items-center gap-1">
+          <Link
+            href="/explore"
+            className="text-disha-leaf hover:text-disha-ink focus-visible:ring-disha-sun focus-visible:ring-offset-disha-wash dark:hover:text-disha-sun min-h-11 touch-manipulation rounded-full px-3 py-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            Career index
+          </Link>
+          <Link
+            href="/me"
+            className="text-disha-leaf hover:text-disha-ink focus-visible:ring-disha-sun focus-visible:ring-offset-disha-wash dark:hover:text-disha-sun min-h-11 touch-manipulation rounded-full px-3 py-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            प्रोफ़ाइल
+          </Link>
+          <Link
+            href="/counsellor"
+            className="text-disha-leaf hover:text-disha-ink focus-visible:ring-disha-sun focus-visible:ring-offset-disha-wash dark:hover:text-disha-sun min-h-11 touch-manipulation rounded-full px-3 py-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            {welcome.counsellorView}
+          </Link>
+        </nav>
       </header>
 
       <main className="relative z-10 mx-auto flex min-h-svh w-full max-w-4xl items-center justify-center px-4 pt-20 pb-6 sm:px-7 sm:pt-24 sm:pb-8">

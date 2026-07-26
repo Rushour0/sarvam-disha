@@ -19,13 +19,10 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 export const revalidate = 0;
 
 export async function POST(req: Request) {
-  // make an exception for the vercel preview environment
-  if (process.env.NODE_ENV !== 'development' && process.env.IS_VERCEL_PREVIEW !== 'true') {
-    throw new Error(
-      'THIS API ROUTE IS INSECURE. DO NOT USE THIS ROUTE IN PRODUCTION WITHOUT AN AUTHENTICATION LAYER.'
-    );
-  }
-
+  // Disha is a public voice product: anyone on the page may start a call, so
+  // this route intentionally mints tokens without login. The token is scoped
+  // to one random room with a 15-minute TTL. Rate limiting belongs at the
+  // proxy in front of this (Traefik), not here.
   try {
     if (LIVEKIT_URL === undefined) {
       throw new Error('LIVEKIT_URL is not defined');

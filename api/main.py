@@ -9,12 +9,14 @@ Run: uvicorn main:app --host 0.0.0.0 --port 8090
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Cookie, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -32,6 +34,40 @@ app.add_middleware(
 class SignupRequest(BaseModel):
     case: str
     phone: str
+
+
+# HMAC key for the session cookie. The default keeps the demo working out of
+# the box; set a real value in the deployment env. The cookie only gates the
+# student's own profile page — the OTP itself is still the hardcoded demo one,
+# so this is a soft gate either way.
+SESSION_SECRET = (os.environ.get("DISHA_SESSION_SECRET") or "disha-demo-secret").encode()
+SESSION_COOKIE = "disha_session"
+SESSION_TTL_SECONDS = 180 * 24 * 3600
+
+
+def _sign_session(phone: str, expires_at: int) -> str:
+    message = f"{phone}.{expires_at}".encode()
+    return hmac.new(SESSION_SECRET, message, hashlib.sha256).hexdigest()
+
+
+def mint_session(phone: str) -> str:
+    expires_at = int(time.time()) + SESSION_TTL_SECONDS
+    return f"{phone}.{expires_at}.{_sign_session(phone, expires_at)}"
+
+
+def verify_session(token: str | None) -> str | None:
+    """Return the phone number a valid, unexpired session belongs to."""
+    if not token:
+        return None
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+    phone, expires_text, signature = parts
+    if not expires_text.isdigit() or int(expires_text) < time.time():
+        return None
+    if not hmac.compare_digest(signature, _sign_session(phone, int(expires_text))):
+        return None
+    return phone
 
 
 def _safe_name(room: str) -> str:
@@ -119,7 +155,7 @@ def list_cases() -> list[dict]:
 
 
 @app.post("/signup")
-def create_signup(signup: SignupRequest) -> dict:
+def create_signup(signup: SignupRequest, response: Response) -> dict:
     if len(signup.phone) != 10 or not signup.phone.isascii() or not signup.phone.isdigit():
         raise HTTPException(status_code=400, detail="phone must be exactly 10 digits")
 
@@ -130,7 +166,36 @@ def create_signup(signup: SignupRequest) -> dict:
     event = {"type": "signup", "ts": int(time.time()), "phone": signup.phone}
     CASES_DIR.mkdir(parents=True, exist_ok=True)
     _append_json_line(CASES_DIR / f"{safe}.json", event)
+
+    # The browser reaches this route through the web app's /api/disha rewrite,
+    # so the cookie lands on the product's own origin. HttpOnly keeps it out of
+    # page scripts; the profile page forwards it back server-side.
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=mint_session(signup.phone),
+        max_age=SESSION_TTL_SECONDS,
+        httponly=True,
+        samesite="lax",
+        path="/",
+    )
     return {"ok": True, "case": safe, "event": event}
+
+
+@app.get("/me")
+def get_me(disha_session: str | None = Cookie(default=None)) -> dict:
+    """The signed-in student's own case, resolved from the session cookie.
+
+    Unlike /cases this only ever returns the caller's own rows, so it can sit
+    behind the public rewrite without basic auth.
+    """
+    phone = verify_session(disha_session)
+    if phone is None:
+        raise HTTPException(status_code=401, detail="no valid session")
+
+    case = f"case_91{phone}"
+    path = CASES_DIR / f"{case}.json"
+    events = _read_events(path) if path.is_file() else []
+    return {"phone": phone, "case": case, "events": events}
 
 
 @app.get("/cases/{room}")
