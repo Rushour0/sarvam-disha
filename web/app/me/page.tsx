@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Compass,
   GraduationCap,
+  MessagesSquare,
   Sparkles,
   UserRound,
 } from 'lucide-react';
@@ -17,6 +18,7 @@ import {
   deriveDishaSnapshot,
   parseDishaEvent,
 } from '@/lib/disha-events';
+import { cn } from '@/lib/shadcn/utils';
 
 export const metadata: Metadata = {
   title: 'मेरी प्रोफ़ाइल — Disha',
@@ -258,6 +260,29 @@ export default async function MePage() {
                     </div>
                   ))}
                 </dl>
+              </SectionCard>
+            )}
+
+            {me.snapshot.utterances.length > 0 && (
+              <SectionCard icon={<MessagesSquare className="size-4" />} title="बातचीत का record">
+                <ol className="max-h-96 space-y-2 overflow-y-auto pr-1">
+                  {me.snapshot.utterances.map((utterance, index) => (
+                    <li
+                      key={`${utterance.ts}-${index}`}
+                      className={cn(
+                        'max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-6',
+                        utterance.role === 'disha'
+                          ? 'bg-disha-leaf/10 rounded-bl-sm'
+                          : 'bg-disha-sun/12 ml-auto rounded-br-sm'
+                      )}
+                    >
+                      <p className="text-muted-foreground text-[0.65rem] font-semibold tracking-wide uppercase">
+                        {utterance.role === 'disha' ? 'Disha' : (me.snapshot.profile?.name ?? 'आप')}
+                      </p>
+                      {utterance.text}
+                    </li>
+                  ))}
+                </ol>
               </SectionCard>
             )}
 

@@ -88,6 +88,15 @@ export interface KbEvent extends DishaEventBase {
   citations: KbCitation[];
 }
 
+/** One spoken turn, as the agent heard or said it. The case file keeps the
+ *  full exchange; the profile page replays it as the record of the call. */
+export interface UtteranceEvent extends DishaEventBase {
+  type: 'utterance';
+  role: 'student' | 'disha';
+  text: string;
+  lang?: string;
+}
+
 /** Who the student is, as the agent learned it in conversation. Later events
  *  carry the full accumulated profile, so the last one seen wins whole. */
 export interface ProfileEvent extends DishaEventBase {
@@ -129,6 +138,7 @@ export type DishaEvent =
   | CareerEvent
   | ScholarshipEvent
   | KbEvent
+  | UtteranceEvent
   | ProfileEvent
   | SummaryEvent
   | StrengthEvent
@@ -149,6 +159,7 @@ export interface DishaSessionSnapshot {
   flags: FlagEvent[];
   refusals: RefusalEvent[];
   strengths: DishaStrength[];
+  utterances: UtteranceEvent[];
   profile?: ProfileEvent;
   summary?: SummaryEvent;
   testResult?: TestResultEvent;
@@ -311,6 +322,18 @@ export function parseDishaEvent(value: unknown): DishaEvent | null {
             })),
           }
         : null;
+    case 'utterance':
+      return (value.role === 'student' || value.role === 'disha') &&
+        typeof value.text === 'string' &&
+        value.text.trim().length > 0
+        ? {
+            type: 'utterance',
+            ts: value.ts,
+            role: value.role,
+            text: value.text,
+            lang: optionalString(value.lang),
+          }
+        : null;
     case 'profile': {
       const profile: ProfileEvent = {
         type: 'profile',
@@ -379,6 +402,7 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
     flags: [],
     refusals: [],
     strengths: [],
+    utterances: [],
   };
   const seenPaths = new Set<string>();
   const seenCitations = new Set<string>();
@@ -423,6 +447,9 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
         break;
       case 'refusal':
         snapshot.refusals.push(event);
+        break;
+      case 'utterance':
+        snapshot.utterances.push(event);
         break;
       case 'profile':
         // Each profile event carries the whole accumulated profile, so the

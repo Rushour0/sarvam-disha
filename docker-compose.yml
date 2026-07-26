@@ -15,7 +15,7 @@
 #   SARVAM_API_KEY
 #   OPENAI_API_KEY
 # Optional:
-#   DISHA_LLM (default openai/gpt-4.1-mini)
+#   DISHA_LLM (default sarvam/sarvam-30b; openai/gpt-4.1-mini also supported)
 
 services:
   sarvam-qdrant:
@@ -55,7 +55,10 @@ services:
       - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
       - SARVAM_API_KEY=${SARVAM_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DISHA_LLM=${DISHA_LLM:-openai/gpt-4.1-mini}
+      # sarvam/<model> routes through the Sarvam chat completions API using
+      # SARVAM_API_KEY. sarvam-30b is the plugin's own default; sweep against
+      # sarvam-m (cheaper) and sarvam-105b (stronger tool use) on real calls.
+      - DISHA_LLM=${DISHA_LLM:-sarvam/sarvam-30b}
       - QDRANT_URL=http://sarvam-qdrant:6333
     volumes:
       - sarvam-disha-cases:/app/agent/cases

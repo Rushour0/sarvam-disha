@@ -56,9 +56,12 @@ DISHA_TTS_SPEAKER = os.environ.get("DISHA_TTS_SPEAKER", "pooja")  # bulbul:v3 fe
 
 
 def build_llm():
-    """DISHA_LLM controls the brain: "openai/<model>" uses the OpenAI key from
-    .env; any other string is passed to LiveKit Inference as-is."""
+    """DISHA_LLM controls the brain: "sarvam/<model>" calls the Sarvam chat
+    completions API with the SARVAM_API_KEY already in .env; "openai/<model>"
+    uses the OpenAI key; any other string is passed to LiveKit Inference as-is."""
     choice = os.environ.get("DISHA_LLM", "openai/gpt-4.1-mini")
+    if choice.startswith("sarvam/"):
+        return sarvam.LLM(model=choice.removeprefix("sarvam/"))
     if choice.startswith("openai/") and os.environ.get("OPENAI_API_KEY"):
         return openai_plugin.LLM(model=choice.removeprefix("openai/"))
     return choice
