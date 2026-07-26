@@ -13,11 +13,32 @@ stack. Amazon Linux 2023, 2 vCPU, 7.6 GiB RAM, ~8 GiB disk free.
 | `qdrant` | vector store for the KB and per-case memory | none |
 | `indexer` | one-shot; embeds the KB then exits | none |
 | `agent` | LiveKit worker, dials out to LiveKit Cloud | none |
-| `api` | case API and the FastAPI tree/scholarship endpoints | Traefik |
+| `api` | case API and the tree/scholarship endpoints | none |
+| `web` | Next.js app; proxies the API at /api/disha | cloudflared |
 
-Only the API needs a domain. The agent holds an outbound connection to LiveKit
-Cloud and never accepts inbound traffic, so it gets no route and no exposed
-port.
+Only the web app is reachable from outside. The API has no domain on purpose:
+`/cases` returns every student's phone number and the verbatim quotes that
+triggered a wellbeing flag, so it is reached only through the web container on
+the internal network. `/counsellor` and `/api/disha/cases` sit behind basic
+auth that returns 503 when `DISHA_COUNSELLOR_PASSWORD` is unset — a missing
+secret fails closed rather than serving that data.
+
+The agent holds an outbound connection to LiveKit Cloud and never accepts
+inbound traffic, so it gets no route and no exposed port.
+
+## Two things that will waste an afternoon
+
+**The box is Graviton (aarch64).** Images built on standard amd64 runners fail
+every pull with `no matching manifest for linux/arm64/v8`. The build job runs
+on `ubuntu-24.04-arm` with `platforms: linux/arm64` for that reason.
+
+**cloudflared must be attached to this stack's network.** It routes by Docker
+service name, and Coolify gives each resource its own network, so a hostname
+pointing at `http://sarvam-web:3000` fails with `no such host` until:
+
+    docker network connect <resource-uuid-network> cloudflared
+
+The symptom looks like an application crash, not a DNS problem.
 
 ## Its own Qdrant, deliberately
 
