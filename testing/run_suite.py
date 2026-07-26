@@ -1,8 +1,6 @@
 """Run several scenarios and print one combined readout.
 
-Scenarios run with limited concurrency because each one occupies a LiveKit room
-and a worker job process. Two at a time keeps the suite quick without starving
-the worker.
+Scenarios run strictly one at a time because they share one LiveKit worker.
 
     testing/.venv/bin/python testing/run_suite.py
     testing/.venv/bin/python testing/run_suite.py m2_tuning closed_list
@@ -11,7 +9,9 @@ the worker.
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -21,12 +21,20 @@ PYTHON = TESTING_DIR / ".venv" / "bin" / "python"
 RUNNER = TESTING_DIR / "scenario_runner.py"
 SCENARIOS_DIR = TESTING_DIR / "scenarios"
 RECORDINGS_DIR = TESTING_DIR / "recordings"
-CONCURRENCY = 2
+# Give the LiveKit worker time to release the prior room before the next scenario.
+SUITE_SETTLE_S = float(os.environ.get("SUITE_SETTLE_S", "5"))
 
 
-async def run_one(scenario_id: str, slot: asyncio.Semaphore) -> dict:
-    async with slot:
-        print(f"[start] {scenario_id}")
+def progress_marker(phase: str, scenario_id: str, detail: str = "") -> None:
+    timestamp = datetime.now().astimezone().isoformat(timespec="seconds")
+    print(f"[{timestamp}] [{phase}] {scenario_id}{detail}", flush=True)
+
+
+async def run_one(scenario_id: str) -> dict:
+    process = None
+    output = ""
+    progress_marker("start", scenario_id)
+    try:
         process = await asyncio.create_subprocess_exec(
             str(PYTHON),
             str(RUNNER),
@@ -37,28 +45,59 @@ async def run_one(scenario_id: str, slot: asyncio.Semaphore) -> dict:
         )
         stdout, _ = await process.communicate()
         output = stdout.decode(errors="replace")
-        print(f"[done ] {scenario_id} (exit {process.returncode})")
+
+        if process.returncode != 0:
+            return {
+                "scenario": scenario_id,
+                "exit_code": process.returncode,
+                "results": [],
+                "run_dir": None,
+                "output": output,
+                "error": f"runner exited {process.returncode}",
+            }
 
         newest = sorted(RECORDINGS_DIR.glob(f"*_{scenario_id}"))
         readout = newest[-1] / "readout.json" if newest else None
-        results = (
-            json.loads(readout.read_text(encoding="utf-8"))
-            if readout and readout.exists()
-            else []
-        )
+        if not readout or not readout.exists():
+            return {
+                "scenario": scenario_id,
+                "exit_code": process.returncode,
+                "results": [],
+                "run_dir": str(newest[-1]) if newest else None,
+                "output": output,
+                "error": "runner completed without a readout",
+            }
+
+        results = json.loads(readout.read_text(encoding="utf-8"))
         return {
             "scenario": scenario_id,
             "exit_code": process.returncode,
             "results": results,
             "run_dir": str(newest[-1]) if newest else None,
             "output": output,
+            "error": None,
         }
+    except Exception as error:
+        return {
+            "scenario": scenario_id,
+            "exit_code": process.returncode if process else None,
+            "results": [],
+            "run_dir": None,
+            "output": output,
+            "error": f"{type(error).__name__}: {error}",
+        }
+    finally:
+        exit_detail = f" (exit {process.returncode})" if process else " (not started)"
+        progress_marker("done ", scenario_id, exit_detail)
 
 
 async def main() -> None:
     requested = sys.argv[1:] or sorted(p.stem for p in SCENARIOS_DIR.glob("*.json"))
-    slot = asyncio.Semaphore(CONCURRENCY)
-    runs = await asyncio.gather(*(run_one(name, slot) for name in requested))
+    runs = []
+    for index, name in enumerate(requested):
+        runs.append(await run_one(name))
+        if index < len(requested) - 1:
+            await asyncio.sleep(SUITE_SETTLE_S)
 
     total_pass = total_steps = 0
     print("\n" + "=" * 72)
@@ -67,8 +106,8 @@ async def main() -> None:
 
     for run in runs:
         results = run["results"]
-        if not results:
-            print(f"\n{run['scenario']}: NO READOUT (exit {run['exit_code']})")
+        if run["error"]:
+            print(f"\n{run['scenario']}: ERROR ({run['error']}; exit {run['exit_code']})")
             print("  last output:")
             for line in run["output"].strip().splitlines()[-8:]:
                 print(f"    {line}")

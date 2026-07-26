@@ -18,6 +18,7 @@ import { cn } from '@/lib/shadcn/utils';
 
 interface CounsellorSession extends StoredDishaSession {
   source: 'api' | 'browser';
+  signupPhone: string | null;
 }
 
 const CONSTRAINT_LABELS: Record<ConstraintName, string> = {
@@ -115,7 +116,18 @@ function extractEvents(value: unknown): DishaEvent[] {
   return events;
 }
 
-function normaliseApiSession(value: unknown, fallbackRoom = ''): CounsellorSession | null {
+function extractSignupPhone(value: unknown): string | null {
+  if (!isRecord(value)) return null;
+  const caseValue = isRecord(value.case) ? value.case : value;
+  return typeof caseValue.phone === 'string' ? caseValue.phone : null;
+}
+
+function normaliseApiSession(
+  value: unknown,
+  fallbackRoom = '',
+  fallbackSignupPhone: string | null = null,
+  fallbackUpdatedAt = 0
+): CounsellorSession | null {
   if (!isRecord(value)) return null;
 
   const caseValue = isRecord(value.case) ? value.case : value;
@@ -125,14 +137,18 @@ function normaliseApiSession(value: unknown, fallbackRoom = ''): CounsellorSessi
   const events = extractEvents(caseValue);
   const latestEvent = events.reduce((latest, event) => Math.max(latest, event.ts * 1000), 0);
   const updatedAt =
-    timestampToMilliseconds(caseValue.updated_at ?? caseValue.updatedAt ?? caseValue.ts) ||
-    latestEvent;
+    timestampToMilliseconds(
+      caseValue.updated_at ?? caseValue.updatedAt ?? caseValue.updated ?? caseValue.ts
+    ) ||
+    latestEvent ||
+    fallbackUpdatedAt;
 
   return {
     room,
     events,
     updatedAt,
     source: 'api',
+    signupPhone: extractSignupPhone(caseValue) ?? fallbackSignupPhone,
   };
 }
 
@@ -155,6 +171,12 @@ async function fetchApiSessions(signal: AbortSignal): Promise<CounsellorSession[
     caseList.map(async (caseEntry) => {
       const room = extractRoom(caseEntry);
       if (!room) return null;
+      const signupPhone = extractSignupPhone(caseEntry);
+      const updatedAt = isRecord(caseEntry)
+        ? timestampToMilliseconds(
+            caseEntry.updated_at ?? caseEntry.updatedAt ?? caseEntry.updated ?? caseEntry.ts
+          )
+        : 0;
 
       try {
         const detailResponse = await fetch(`${base}/cases/${encodeURIComponent(room)}`, {
@@ -162,13 +184,13 @@ async function fetchApiSessions(signal: AbortSignal): Promise<CounsellorSession[
           signal,
         });
         if (detailResponse.ok) {
-          return normaliseApiSession(await detailResponse.json(), room);
+          return normaliseApiSession(await detailResponse.json(), room, signupPhone, updatedAt);
         }
       } catch (error) {
         if (signal.aborted) throw error;
       }
 
-      return normaliseApiSession(caseEntry, room);
+      return normaliseApiSession(caseEntry, room, signupPhone, updatedAt);
     })
   );
 
@@ -182,7 +204,7 @@ function mergeSessions(
   const merged = new Map<string, CounsellorSession>();
 
   for (const session of browserSessions) {
-    merged.set(session.room, { ...session, source: 'browser' });
+    merged.set(session.room, { ...session, source: 'browser', signupPhone: null });
   }
   for (const session of apiSessions) {
     const localSession = merged.get(session.room);
@@ -308,11 +330,13 @@ export function CounsellorView() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[860px] border-collapse text-left">
                 <caption className="sr-only">
-                  Disha sessions with practical constraints and counsellor review notes
+                  Disha sessions with signup phones, practical constraints, and counsellor review
+                  notes
                 </caption>
                 <thead>
                   <tr className="bg-muted/70 text-muted-foreground text-xs tracking-wide uppercase">
                     <th className="px-5 py-3 font-semibold">Session</th>
+                    <th className="px-5 py-3 font-semibold">Phone</th>
                     <th className="px-5 py-3 font-semibold">Constraints</th>
                     <th className="px-5 py-3 font-semibold">Review notes</th>
                     <th className="px-5 py-3 font-semibold">Updated</th>
@@ -329,6 +353,20 @@ export function CounsellorView() {
                             {session.room}
                           </p>
                           <SessionSource source={session.source} />
+                        </td>
+                        <td className="px-5 py-5">
+                          {session.signupPhone ? (
+                            <>
+                              <p className="font-mono text-xs font-semibold whitespace-nowrap">
+                                +91 {session.signupPhone}
+                              </p>
+                              <span className="bg-disha-leaf/10 text-disha-leaf mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
+                                Signed up
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
                         </td>
                         <td className="px-5 py-5">
                           {constraints.length > 0 ? (

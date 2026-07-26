@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 CASES_DIR = Path(os.environ.get("DISHA_CASES_DIR", Path(__file__).resolve().parent.parent / "agent" / "cases"))
 
@@ -22,9 +24,18 @@ app = FastAPI(title="Disha case API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+class SignupRequest(BaseModel):
+    case: str
+    phone: str
+
+
+def _safe_name(room: str) -> str:
+    return "".join(c for c in room if c.isalnum() or c in "_-.")
 
 
 def _read_events(path: Path) -> list[dict]:
@@ -38,6 +49,15 @@ def _read_events(path: Path) -> list[dict]:
         except json.JSONDecodeError:
             continue
     return events
+
+
+def _append_json_line(path: Path, event: dict[str, object]) -> None:
+    line = (json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n").encode()
+    descriptor = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)
+    try:
+        os.write(descriptor, line)
+    finally:
+        os.close(descriptor)
 
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -72,6 +92,8 @@ def health() -> dict:
 
 @app.get("/cases")
 def list_cases() -> list[dict]:
+    # WARNING: This unauthenticated route exposes phone numbers and verbatim
+    # wellbeing quotes. It must not be exposed publicly as-is.
     if not CASES_DIR.is_dir():
         return []
     out = []
@@ -80,6 +102,7 @@ def list_cases() -> list[dict]:
         flags = [e for e in events if e.get("type") == "flag"]
         constraints = {e["name"]: e["value"] for e in events if e.get("type") == "constraint" and "name" in e}
         summary = next((e for e in reversed(events) if e.get("type") == "summary"), None)
+        signup = next((e for e in reversed(events) if e.get("type") == "signup"), None)
         out.append(
             {
                 "room": path.stem,
@@ -88,14 +111,31 @@ def list_cases() -> list[dict]:
                 "flags": flags,
                 "constraints": constraints,
                 "has_summary": summary is not None,
+                "phone": signup.get("phone") if signup is not None else None,
+                "has_signup": signup is not None,
             }
         )
     return out
 
 
+@app.post("/signup")
+def create_signup(signup: SignupRequest) -> dict:
+    if len(signup.phone) != 10 or not signup.phone.isascii() or not signup.phone.isdigit():
+        raise HTTPException(status_code=400, detail="phone must be exactly 10 digits")
+
+    safe = _safe_name(signup.case)
+    if not safe:
+        raise HTTPException(status_code=400, detail="case must contain a valid filename character")
+
+    event = {"type": "signup", "ts": int(time.time()), "phone": signup.phone}
+    CASES_DIR.mkdir(parents=True, exist_ok=True)
+    _append_json_line(CASES_DIR / f"{safe}.json", event)
+    return {"ok": True, "case": safe, "event": event}
+
+
 @app.get("/cases/{room}")
 def get_case(room: str) -> dict:
-    safe = "".join(c for c in room if c.isalnum() or c in "_-.")
+    safe = _safe_name(room)
     path = CASES_DIR / f"{safe}.json"
     if not path.is_file():
         raise HTTPException(status_code=404, detail="case not found")
