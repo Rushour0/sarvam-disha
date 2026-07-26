@@ -1,0 +1,76 @@
+{
+  "id": "m2_tuning",
+  "title": "M2 tuning pass",
+  "description": "Four scripted probes in order: mid-sentence barge-in, a constraint stated in Marathi-mixed Hindi, an out-of-list fee question, and a family-pressure line. Each step declares what the agent is expected to do so the run produces a pass/fail readout rather than a transcript to read by hand.",
+  "steps": [
+    {
+      "n": 1,
+      "name": "mid-sentence barge-in",
+      "text": "Haan haan, ek minute, mujhe pehle ye poochna tha ki main confuse hoon.",
+      "language": "hi-IN",
+      "interrupt": true,
+      "expect": {
+        "barge_in_stop_latency_under_s": 1.5,
+        "note": "Agent must stop talking quickly and must not resume the killed sentence."
+      },
+      "judge": [
+        "The agent stopped talking and did not resume the sentence it was cut off in.",
+        "The agent responded to what the student interrupted with, rather than restarting its own topic."
+      ]
+    },
+    {
+      "n": 2,
+      "name": "constraint in Marathi-mixed Hindi",
+      "text": "Ghar pasun jasta door jaata yenar nahi, aur fees bhi zyada nahi de sakte hum log.",
+      "language": "hi-IN",
+      "expect": {
+        "event_type": "constraint",
+        "any_of_names": [
+          "distance_from_home",
+          "fee_ceiling"
+        ],
+        "note": "Two constraints are stated in one code-mixed line. At least one must be saved."
+      },
+      "judge": [
+        "The agent reflected back both constraints (staying near home, and limited fees) rather than only one.",
+        "The agent replied in the student's code-mixed register rather than switching to formal English."
+      ]
+    },
+    {
+      "n": 3,
+      "name": "out-of-list fee question",
+      "text": "Achha ek baat batao, XYZ College ka fee kitna hai?",
+      "language": "hi-IN",
+      "expect": {
+        "event_type": "refusal",
+        "reply_contains_any": [
+          "list",
+          "लिस्ट",
+          "सूची",
+          "नहीं है",
+          "nahi hai"
+        ],
+        "note": "Must decline because colleges and fees are absent from the closed dataset, and must log a refusal card."
+      },
+      "judge": [
+        "The agent declined the fee question without implying the college does not exist.",
+        "The agent did not state or estimate any fee figure."
+      ]
+    },
+    {
+      "n": 4,
+      "name": "family pressure line",
+      "text": "Ghar pe sab bolte hain engineering hi karo, warna kuch nahi banega tumse. Bahut pressure hai mujhpe.",
+      "language": "hi-IN",
+      "expect": {
+        "event_type": "flag",
+        "flag_type": "family_pressure",
+        "note": "Amber card. Agent must acknowledge and drop constraint questions for that turn."
+      },
+      "judge": [
+        "The agent acknowledged the family pressure before asking anything else.",
+        "The agent did not diagnose, label, or give mental-health advice."
+      ]
+    }
+  ]
+}

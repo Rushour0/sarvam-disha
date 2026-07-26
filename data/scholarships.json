@@ -1,0 +1,664 @@
+[
+  {
+    "id": "nmms",
+    "name": "National Means-cum-Merit Scholarship (NMMS)",
+    "provider": "Department of School Education & Literacy, Ministry of Education",
+    "level": "Pre Matric",
+    "amount": "Rs. 12,000 per annum (Rs. 1,000 per month)",
+    "income_ceiling": "Rs. 3.50 lakh per annum",
+    "eligibility": "Class IX students who clear the state selection test, with at least 55% marks in Class VII (relaxable by 5% for SC/ST). Renewed from Class X to XII on academic performance. Only for students in State Government, Government-aided and local body schools.",
+    "applies_to": [
+      "school"
+    ],
+    "source_url": "https://dsel.education.gov.in/scheme/nmmss",
+    "fetched_on": "2026-07-26",
+    "state": null
+  },
+  {
+    "id": "sc-merit-upgradation",
+    "name": "Upgradation of Merit of SC Students",
+    "provider": "Department of Social Justice & Empowerment",
+    "level": "Pre Matric",
+    "amount": "Package grant of Rs. 25,000 per student per year",
+    "income_ceiling": "Rs. 3.00 lakh per annum",
+    "eligibility": "SC students in classes IX to XII. The grant covers remedial and competitive exam coaching along with boarding, lodging, pocket money and books.",
+    "applies_to": [
+      "school"
+    ],
+    "source_url": "https://socialjustice.gov.in/schemes/26",
+    "fetched_on": "2026-07-26",
+    "state": null
+  },
+  {
+    "id": "aicte-pragati-degree",
+    "name": "AICTE Pragati Scholarship for Girl Students (Technical Degree)",
+    "provider": "All India Council for Technical Education (AICTE)",
+    "level": "Higher Education",
+    "amount": "Rs. 50,000 per year as incidentals",
+    "income_ceiling": null,
+    "eligibility": "Girl students admitted to a degree course at an AICTE-approved technical institution. 10,000 scholarships are awarded each year.",
+    "applies_to": [
+      "higher-ed",
+      "technical",
+      "girls"
+    ],
+    "source_url": "https://www.aicte-india.org/schemes/students-development-schemes/Pragati/General-Instructions",
+    "fetched_on": "2026-07-26",
+    "state": null
+  },
+  {
+    "id": "aicte-pragati-diploma",
+    "name": "AICTE Pragati Scholarship for Girl Students (Technical Diploma)",
+    "provider": "All India Council for Technical Education (AICTE)",
+    "level": "Higher Education",
+    "amount": "Rs. 50,000 per year as incidentals",
+    "income_ceiling": null,
+    "eligibility": "Girl students admitted to a diploma course at an AICTE-approved technical institution.",
+    "applies_to": [
+      "higher-ed",
+      "technical",
+      "vocational",
+      "girls"
+    ],
+    "source_url": "https://www.aicte-india.org/schemes/students-development-schemes/Pragati/General-Instructions",
+    "fetched_on": "2026-07-26",
+    "state": null
+  },
+  {
+    "id": "aicte-saksham-degree",
+    "name": "AICTE Saksham Scholarship for Specially Abled Students (Technical Degree)",
+    "provider": "All India Council for Technical Education (AICTE)",
+    "level": "Higher Education",
+    "amount": "Rs. 50,000 per year as incidentals",
+    "income_ceiling": null,
+    "eligibility": "Differently abled students admitted to a degree course at an AICTE-approved technical institution.",
+    "applies_to": [
+      "higher-ed",
+      "technical",
+      "disability"
+    ],
+    "source_url": "https://www.aicte-india.org/schemes/students-development-schemes/Saksham/General-Instructions",
+    "fetched_on": "2026-07-26",
+    "state": null
+  },
+  {
+    "id": "aicte-saksham-diploma",
+    "name": "AICTE Saksham Scholarship for Specially Abled Students (Technical Diploma)",
+    "provider": "All India Council for Technical Education (AICTE)",
+    "level": "Higher Education",
+    "amount": "Rs. 50,000 per year as incidentals",
+    "income_ceiling": null,
+    "eligibility": "Differently abled students admitted to a diploma course at an AICTE-approved technical institution.",
+    "applies_to": [
+      "higher-ed",
+      "technical",
+      "vocational",
+      "disability"
+    ],
+    "source_url": "https://www.aicte-india.org/schemes/students-development-schemes/Saksham/General-Instructions",
+    "fetched_on": "2026-07-26",
+    "state": null
+  },
+  {
+    "id": "mh-shahu-fee-reimbursement",
+    "name": "Rajarshi Chhatrapati Shahu Maharaj Education Fee Scholarship Scheme",
+    "provider": "Directorate of Technical Education, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": "100% of tuition and examination fees for female students; 50% for male students (100% for girls from the 2024-25 academic year)",
+    "income_ceiling": "Rs. 8.00 lakh per annum (combined parental income)",
+    "eligibility": "EBC, EWS and SEBC students admitted to professional courses in government, government-aided or permanent unaided institutions under the Directorate of Technical Education. Applied on the MahaDBT portal; paid in two instalments to an Aadhaar-linked bank account.",
+    "applies_to": [
+      "higher-ed",
+      "technical",
+      "maharashtra",
+      "girls"
+    ],
+    "source_url": "https://dte.maharashtra.gov.in/rajarshi-chhatrapati-shahu-maharaj/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-panjabrao-hostel-allowance",
+    "name": "Dr. Panjabrao Deshmukh Vasatigruh Nirvah Bhatta Yojna (hostel maintenance allowance)",
+    "provider": "Directorate of Technical Education, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": "Rs. 60,000 per year in Mumbai, Mumbai suburbs, Navi Mumbai, Thane, Pune, Pimpri Chinchwad and Nagpur; Rs. 51,000 in revenue division cities and C-class municipalities; Rs. 43,000 in other districts; Rs. 38,000 in taluka areas",
+    "income_ceiling": "No income limit for children of small-landholding farmers or registered labourers; unlimited seats up to Rs. 1 lakh; 500 seats for Rs. 1 lakh to Rs. 8 lakh",
+    "eligibility": "EBC, EWS and SEBC students admitted through centralised admission to professional courses in government, government-aided and permanent unaided institutions under the Directorate of Technical Education.",
+    "applies_to": [
+      "higher-ed",
+      "technical",
+      "maharashtra",
+      "hostel"
+    ],
+    "source_url": "https://dte.maharashtra.gov.in/dr-panjabrao-deshmukh-vastigruh-nirvah-bhatta-yojna/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-goi-post-matric-sc",
+    "name": "Government of India Post-Matric Scholarship Scheme (Maharashtra)",
+    "provider": "Social Justice & Special Assistance Department, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Post Matric",
+    "amount": "Maintenance allowance of Rs. 250 to Rs. 700 per month for non-hostel students and Rs. 400 to Rs. 1,350 per month for hostel residents, depending on course category, plus tuition, examination and other approved fees",
+    "income_ceiling": "Rs. 2.50 lakh per annum for the full scholarship",
+    "eligibility": "Scheduled Caste or Navbouddha students who are residents of Maharashtra and studying above 10th standard. Applied on the MahaDBT portal.",
+    "applies_to": [
+      "higher-ed",
+      "maharashtra",
+      "hostel"
+    ],
+    "source_url": "https://sjsa.maharashtra.gov.in/en/scheme/government-of-india-post-matric-scholarship-scheme/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "aicte-swanath-degree",
+    "name": "AICTE Swanath Scholarship Scheme (Technical Degree)",
+    "provider": "All India Council for Technical Education (AICTE)",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "technical"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "aicte-swanath-diploma",
+    "name": "AICTE Swanath Scholarship Scheme (Technical Diploma)",
+    "provider": "All India Council for Technical Education (AICTE)",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "technical",
+      "vocational"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "pm-usp-csss",
+    "name": "PM-USP Central Sector Scheme of Scholarship for College and University Students (CSSS)",
+    "provider": "Department of Higher Education, Ministry of Education",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "pm-usp-jk-ladakh",
+    "name": "PM USP Special Scholarship Scheme for Jammu Kashmir and Ladakh",
+    "provider": "All India Council for Technical Education (AICTE)",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "pm-yasasvi-school",
+    "name": "PM YASASVI Top Class Education in Schools for OBC, EBC and DNT Students",
+    "provider": "Department of Social Justice & Empowerment (Backward Classes)",
+    "state": null,
+    "level": "Pre/Post Matric",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "school"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "pm-yasasvi-college",
+    "name": "PM YASASVI Top Class Education in Colleges for OBC, EBC and DNT Students",
+    "provider": "Department of Social Justice & Empowerment (Backward Classes)",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "sc-top-class",
+    "name": "Central Sector Scholarship of Top Class Education for SC Students",
+    "provider": "Department of Social Justice & Empowerment",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "st-national-fellowship",
+    "name": "National Fellowship and Scholarship for Higher Education of ST Students",
+    "provider": "Ministry of Tribal Affairs",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "disability-pre-matric",
+    "name": "Pre Matric Scholarship for Students with Disabilities",
+    "provider": "Department of Empowerment of Persons with Disabilities",
+    "state": null,
+    "level": "Pre/Post Matric",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "school",
+      "disability"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "disability-post-matric",
+    "name": "Post Matric Scholarship for Students with Disabilities",
+    "provider": "Department of Empowerment of Persons with Disabilities",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "disability"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "disability-top-class",
+    "name": "Scholarship for Top Class Education for Students with Disabilities",
+    "provider": "Department of Empowerment of Persons with Disabilities",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "disability"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "beedi-pre-matric",
+    "name": "Financial Assistance for Education to the Wards of Beedi/Cine/IOMC/LSDM Workers (Pre Matric)",
+    "provider": "Ministry of Labour & Employment",
+    "state": null,
+    "level": "Pre/Post Matric",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "school"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "beedi-post-matric",
+    "name": "Financial Assistance for Education to the Wards of Beedi/Cine/IOMC/LSDM Workers (Post Matric)",
+    "provider": "Ministry of Labour & Employment",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "capf-pmss",
+    "name": "Prime Minister's Scholarship Scheme for Central Armed Police Forces and Assam Rifles",
+    "provider": "Ministry of Home Affairs",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "defence-family"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "police-martyrs-pmss",
+    "name": "PM's Scholarship Scheme for Wards of State/UT Police Personnel Martyred in Terror/Naxal Attacks",
+    "provider": "Ministry of Home Affairs",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "defence-family"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "railways-pmss",
+    "name": "Prime Minister's Scholarship Scheme for Ministry of Railways",
+    "provider": "Ministry of Railways (Railway Board)",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "ishan-uday",
+    "name": "Ishan Uday Special Scholarship Scheme for North Eastern Region",
+    "provider": "University Grants Commission (UGC)",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "ner"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "ugc-pg-national",
+    "name": "National Scholarship for Post Graduate Studies",
+    "provider": "University Grants Commission (UGC)",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "research"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "nec-merit",
+    "name": "Financial Support to Students of NER for Higher Professional Courses (NEC Merit Scholarship)",
+    "provider": "North Eastern Council, Ministry of DoNER",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "ner"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "icar-nts-ug",
+    "name": "ICAR National Talent Scholarship (NTS-UG)",
+    "provider": "Department of Agriculture Research and Education",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "agriculture"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "icar-nts-pg",
+    "name": "ICAR National Talent Scholarship (NTS-PG)",
+    "provider": "Department of Agriculture Research and Education",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "agriculture",
+      "research"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "icar-pgs",
+    "name": "ICAR Post Graduate Scholarship (PGS)",
+    "provider": "Department of Agriculture Research and Education",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "agriculture",
+      "research"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "icar-jrf-srf",
+    "name": "ICAR Junior and Senior Research Fellowships (JRF/SRF)",
+    "provider": "Department of Agriculture Research and Education",
+    "state": null,
+    "level": "Pre/Post Matric",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "research",
+      "agriculture"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mnre-fellowship",
+    "name": "National Renewable Energy Fellowship Scheme",
+    "provider": "Ministry of New and Renewable Energy",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "research",
+      "technical"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "isi-kolkata-stipend",
+    "name": "Stipend Scheme for UG and PG Studies at Indian Statistical Institute, Kolkata",
+    "provider": "Ministry of Statistics and Programme Implementation",
+    "state": null,
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the National Scholarship Portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed"
+    ],
+    "source_url": "https://scholarships.gov.in/All-Scholarships",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-post-matric-st",
+    "name": "Post Matric Scholarship to S.T. Students",
+    "provider": "Tribal Development Department, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the MahaDBT portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "maharashtra"
+    ],
+    "source_url": "https://mahadbt.maharashtra.gov.in/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-post-matric-sbc",
+    "name": "Post Matric Scholarship to SBC Students",
+    "provider": "Social Justice & Special Assistance Department, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the MahaDBT portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "maharashtra"
+    ],
+    "source_url": "https://mahadbt.maharashtra.gov.in/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-freeship-tuition-exam",
+    "name": "Post-Matric Tuition Fee and Examination Fee (Freeship)",
+    "provider": "Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the MahaDBT portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "maharashtra"
+    ],
+    "source_url": "https://mahadbt.maharashtra.gov.in/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-shahu-merit-vjnt-sbc",
+    "name": "Rajarshi Chhatrapati Shahu Maharaj Merit Scholarship for VJNT and SBC students in 11th and 12th standard",
+    "provider": "Social Justice & Special Assistance Department, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Pre/Post Matric",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the MahaDBT portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "school",
+      "maharashtra"
+    ],
+    "source_url": "https://mahadbt.maharashtra.gov.in/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-obc-girls-professional",
+    "name": "Post Matric Scholarship to Girls of Other Backward Classes taking admission in Professional Courses",
+    "provider": "Other Backward Bahujan Welfare Department, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the MahaDBT portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "maharashtra",
+      "girls"
+    ],
+    "source_url": "https://mahadbt.maharashtra.gov.in/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-obc-girls-fees",
+    "name": "Payment of Tuition Fees and Examination Fees to OBC Girls Pursuing Professional Courses",
+    "provider": "Other Backward Bahujan Welfare Department, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the MahaDBT portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "maharashtra",
+      "girls"
+    ],
+    "source_url": "https://mahadbt.maharashtra.gov.in/",
+    "fetched_on": "2026-07-26"
+  },
+  {
+    "id": "mh-vjnt-sbc-hostel-allowance",
+    "name": "Maintenance Allowance to VJNT and SBC Students in Professional Courses living in hostels attached to professional colleges",
+    "provider": "Social Justice & Special Assistance Department, Government of Maharashtra",
+    "state": "Maharashtra",
+    "level": "Higher Education",
+    "amount": null,
+    "income_ceiling": null,
+    "eligibility": "Listed on the MahaDBT portal. Detailed eligibility, amount and last date are published in the scheme guidelines there.",
+    "applies_to": [
+      "higher-ed",
+      "maharashtra",
+      "hostel"
+    ],
+    "source_url": "https://mahadbt.maharashtra.gov.in/",
+    "fetched_on": "2026-07-26"
+  }
+]

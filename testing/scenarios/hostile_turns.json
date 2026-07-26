@@ -1,0 +1,74 @@
+{
+  "id": "hostile_turns",
+  "title": "Hostile turn-taking",
+  "description": "Three interruptions plus a wrong premise stated as fact. Targets the post-barge-in context loss seen in the p2_sanika run, where the agent stopped cleanly but then restarted its own thread instead of answering what it had been interrupted with.",
+  "steps": [
+    {
+      "n": 1,
+      "name": "cut in with a real question",
+      "text": "Ruko ruko, pehle ye batao, dsawi ke baad direct MBBS ho jaata hai na?",
+      "language": "hi-IN",
+      "interrupt": true,
+      "expect": {
+        "barge_in_stop_latency_under_s": 1.5,
+        "reply_contains_any": [
+          "barah",
+          "बारह",
+          "12",
+          "nahi",
+          "नहीं"
+        ],
+        "note": "Must stop AND answer the interrupting question. Correcting the wrong premise is the point; restarting its own sentence is the failure."
+      },
+      "judge": [
+        "The agent corrected the false premise that MBBS can be entered directly after 10th.",
+        "The agent answered the interrupting question rather than resuming its own sentence."
+      ]
+    },
+    {
+      "n": 2,
+      "name": "cut in again immediately",
+      "text": "Haan par mera matlab hai ki mujhe science lena hi padega kya iske liye?",
+      "language": "hi-IN",
+      "interrupt": true,
+      "expect": {
+        "barge_in_stop_latency_under_s": 1.5,
+        "note": "Second consecutive interruption. Latency must not degrade."
+      },
+      "judge": [
+        "The agent answered whether science is required, rather than restarting its script."
+      ]
+    },
+    {
+      "n": 3,
+      "name": "third cut-in, off topic",
+      "text": "Achha chhodo ye sab, aapko cricket pasand hai kya?",
+      "language": "hi-IN",
+      "interrupt": true,
+      "expect": {
+        "barge_in_stop_latency_under_s": 1.5,
+        "note": "Topic drift under interruption. Agent should hold the thread without being rude."
+      },
+      "judge": [
+        "The agent redirected back to career without being dismissive or rude."
+      ]
+    },
+    {
+      "n": 4,
+      "name": "back on topic, check it recovered",
+      "text": "Theek hai wapas aate hain. Toh maine jo poocha tha doctor banne ke liye, uska kya?",
+      "language": "hi-IN",
+      "expect": {
+        "reply_contains_none": [
+          "cricket",
+          "क्रिकेट"
+        ],
+        "note": "After the drift the agent must be back on the career thread, not still discussing cricket."
+      },
+      "judge": [
+        "The agent picked the medical thread back up.",
+        "The agent did not act confused about what was being referred to."
+      ]
+    }
+  ]
+}

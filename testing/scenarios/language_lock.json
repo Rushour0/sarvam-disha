@@ -1,0 +1,72 @@
+{
+  "id": "language_lock",
+  "title": "Marathi language lock",
+  "description": "Every student line is Marathi. The agent must answer in Marathi and stay there. This targets the drift seen in the p4_prachi run, where the agent switched to Marathi for two turns and then slid back to Hindi for the rest of the call. TTS in agent/main.py is pinned to hi-IN, so this scenario is expected to fail until that is driven by the detected input language.",
+  "steps": [
+    {
+      "n": 1,
+      "name": "open in Marathi",
+      "text": "Namaskar, mala thoda margdarshan hava hota. Mi ata barावi zali aahe.",
+      "language": "mr-IN",
+      "expect": {
+        "reply_language": "mr",
+        "note": "First Marathi turn. Agent should follow the student into Marathi immediately."
+      },
+      "judge": [
+        "The agent replied in Marathi."
+      ]
+    },
+    {
+      "n": 2,
+      "name": "stay in Marathi, turn 2",
+      "text": "Mala science aavadta pan doctor honyacha vichar nahi. Dusare kay pariyay aahet?",
+      "language": "mr-IN",
+      "expect": {
+        "reply_language": "mr"
+      },
+      "judge": [
+        "The agent replied in Marathi.",
+        "The agent named alternatives to medicine rather than only asking another question."
+      ]
+    },
+    {
+      "n": 3,
+      "name": "stay in Marathi, turn 3",
+      "text": "Gharun jasta door jaata yenar nahi mala. Punyat kiva jawal kahi asel tar bare hoil.",
+      "language": "mr-IN",
+      "expect": {
+        "reply_language": "mr",
+        "event_type": "constraint"
+      },
+      "judge": [
+        "The agent replied in Marathi.",
+        "The agent acknowledged the distance constraint concretely."
+      ]
+    },
+    {
+      "n": 4,
+      "name": "stay in Marathi, turn 4",
+      "text": "Tumhi sangitlela pariyay mala thoda samjavun sanga na, nakki kay karave lagel tyat?",
+      "language": "mr-IN",
+      "expect": {
+        "reply_language": "mr"
+      },
+      "judge": [
+        "The agent replied in Marathi.",
+        "The agent actually explained the option rather than deflecting to another question."
+      ]
+    },
+    {
+      "n": 5,
+      "name": "stay in Marathi, turn 5",
+      "text": "Bara, ani tyachyat pudhe naukri chi kay shakyata aahe? Mala tyabaddal janun ghyaycha aahe.",
+      "language": "mr-IN",
+      "expect": {
+        "reply_language": "mr"
+      },
+      "judge": [
+        "The agent replied in Marathi."
+      ]
+    }
+  ]
+}

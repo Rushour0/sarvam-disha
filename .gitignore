@@ -1,0 +1,16 @@
+# Secrets and deployment targets — never commit
+.env
+.env.local
+scripts/deploy.env
+
+# Local runtime state
+agent/.venv/
+**/__pycache__/
+agent/cases/
+testing/recordings/
+data/raw/
+
+# Web
+web/node_modules/
+web/.next/
+web/tsconfig.tsbuildinfo

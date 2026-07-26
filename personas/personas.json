@@ -1,0 +1,200 @@
+{
+  "version": "0.1",
+  "note": "Machine-readable persona bank. Prose detail lives in personas.md. Keep the two in sync by id.",
+  "personas": [
+    {
+      "id": "p1_rohan",
+      "name": "Rohan Deshmukh",
+      "age": 15,
+      "city": "Nashik",
+      "stage": "post_10th",
+      "board": "Maharashtra State",
+      "marks": "78%",
+      "lang": { "hi": 0.6, "mr": 0.25, "en": 0.15 },
+      "primary_lang": "hi",
+      "tts_hint": { "rate": 0.9, "energy": "low" },
+      "audio": { "noise": "fan_hum", "quality": "good" },
+      "opening": "Haan toh... mera 10th ka result aaya, 78 percent. Papa bol rahe hain Science le lo. Mujhe kuch samajh nahi aa raha. Kya karu?",
+      "hidden_context": "Draws well. Does not know design/architecture are careers. Says 'haan haan' without understanding.",
+      "stress": ["long_pauses", "fake_comprehension"],
+      "pass": [
+        "asks an open interest question before recommending a stream",
+        "surfaces drawing and names a concrete path (B.Des/NID/architecture/NATA)",
+        "gives a Maharashtra-specific next step",
+        "checks understanding instead of accepting 'haan haan'"
+      ],
+      "fail": ["recommends Science within 2 turns", "uses ungloss ed English jargon", "never finds the drawing interest"]
+    },
+    {
+      "id": "p2_sanika",
+      "name": "Sanika Patil",
+      "age": 17,
+      "city": "Kolhapur",
+      "stage": "post_12th",
+      "stream": "PCM",
+      "marks": "71%, JEE 42 percentile",
+      "lang": { "hi": 0.55, "en": 0.35, "mr": 0.1 },
+      "primary_lang": "hi",
+      "tts_hint": { "rate": 1.15, "energy": "high" },
+      "audio": { "noise": "none", "quality": "good" },
+      "opening": "Mera JEE bahut kharab gaya... 42 percentile. Ab drop year lu ya nahi? Ghar pe sab poochh rahe hain aur mereko kuch pata nahi.",
+      "hidden_context": "Sunk-cost panic. Thinks engineering is the only PCM outcome. Opens up by turn 6 if handled warmly.",
+      "stress": ["barge_in_turn_2", "barge_in_turn_5", "emotional_distress"],
+      "pass": [
+        "handles barge-in without replaying the same sentence",
+        "acknowledges emotion before options",
+        "gives drop-year decision criteria, not a verdict",
+        "names 3+ non-engineering PCM paths"
+      ],
+      "fail": ["talks over the interruption", "empty comfort with no options", "pushes drop year without asking about money"]
+    },
+    {
+      "id": "p3_aditya",
+      "name": "Aditya Gupta",
+      "age": 18,
+      "city": "Nagpur",
+      "stage": "post_12th",
+      "stream": "Commerce",
+      "marks": "65%",
+      "lang": { "hi": 0.75, "en": 0.2, "mr": 0.05 },
+      "primary_lang": "hi",
+      "tts_hint": { "rate": 1.0, "energy": "medium" },
+      "audio": { "noise": "shop_crowd_plus_horn", "quality": "medium", "crosstalk_at_s": 30 },
+      "opening": "Sir mera Commerce hai, 65 percent. Papa bol rahe dukaan sambhal. Par CA karna tha... woh bahut hard hai na? Kitna time lagta hai usme?",
+      "hidden_context": "Family hardware shop. Optimises purely on time and cost. Goes off-mic for 3s mid-call.",
+      "stress": ["background_speech", "off_mic_gap", "repeats_question"],
+      "pass": [
+        "does not answer background speech as if it were the user",
+        "gives concrete CA Foundation eligibility, duration, fee range",
+        "raises shop-plus-study instead of either/or"
+      ],
+      "fail": ["hallucinates over the off-mic gap", "dodges cost with 'it depends'", "frames the shop as a problem"]
+    },
+    {
+      "id": "p4_prachi",
+      "name": "Prachi Kale",
+      "age": 16,
+      "city": "Pune",
+      "stage": "post_10th",
+      "board": "SSC",
+      "marks": "62%",
+      "lang": { "mr": 0.6, "hi": 0.25, "en": 0.15 },
+      "primary_lang": "mr",
+      "tts_hint": { "rate": 1.0, "energy": "medium" },
+      "audio": { "noise": "none", "quality": "good" },
+      "opening": "Mala ek doubt hota... 62 percent aale aahet. Diploma karu ki 11th la jau? Cousin bolat hota diploma barobar aahe.",
+      "hidden_context": "Tight family income, revealed only if asked. Treats a cousin's opinion as authority.",
+      "stress": ["opens_in_marathi", "language_switch_turn_3", "hidden_money_constraint"],
+      "pass": [
+        "detects Marathi and replies in Marathi or Marathi-Hindi",
+        "explains diploma vs 11th on ceiling, lateral entry and cost",
+        "asks about money instead of waiting",
+        "names a scholarship or fee-concession route"
+      ],
+      "fail": ["replies in English and never adapts", "endorses the cousin unqualified", "misses the money constraint"]
+    },
+    {
+      "id": "p5_imran",
+      "name": "Imran Shaikh",
+      "age": 17,
+      "city": "Chhatrapati Sambhajinagar",
+      "stage": "post_12th",
+      "stream": "Arts",
+      "marks": "70%",
+      "lang": { "hi": 0.7, "mr": 0.2, "en": 0.1 },
+      "primary_lang": "hi",
+      "tts_hint": { "rate": 1.1, "energy": "high" },
+      "audio": { "noise": "low", "quality": "good" },
+      "opening": "Mujhe MPSC karna hai. Bas wahi. Kaunsi class join karu abhi se?",
+      "hidden_context": "Does not know MPSC needs a degree first. No plan B. Speaks in 25-40s monologues.",
+      "stress": ["long_monologues", "endpointing", "resists_alternatives"],
+      "pass": [
+        "does not cut off mid-monologue",
+        "corrects the graduation-eligibility gap without deflating him",
+        "picks a degree that supports MPSC",
+        "adds a parallel track without calling it a backup"
+      ],
+      "fail": ["barges in at 3s of silence", "sells coaching immediately", "calls MPSC unrealistic"]
+    },
+    {
+      "id": "p6_vaishnavi",
+      "name": "Vaishnavi Jadhav",
+      "age": 18,
+      "city": "rural Beed",
+      "stage": "post_12th",
+      "stream": "Science",
+      "marks": "81%",
+      "lang": { "mr": 0.8, "hi": 0.15, "en": 0.05 },
+      "primary_lang": "mr",
+      "tts_hint": { "rate": 0.85, "energy": "low", "accent": "marathwada_rural" },
+      "audio": { "noise": "wind", "quality": "poor_lowbitrate", "dropout_at_s": 45, "dropout_len_s": 2 },
+      "opening": "Namaskar... mala vicharaycha hota. 81 percent aale. Pan gharchi paristhiti nahi aahe. College chi fees kashi bharu? Kunala vicharu te pan mahit nahi.",
+      "hidden_context": "First-generation learner. Best marks in the bank, lowest confidence. Says 'hoy' politely without understanding.",
+      "stress": ["rural_accent_asr", "line_dropout", "long_pauses", "fake_comprehension"],
+      "pass": [
+        "asks her to repeat over the dropout instead of inventing content",
+        "names specific schemes (MahaDBT, post-matric scholarship, EBC/freeship)",
+        "gives a concrete portal/office/document next step",
+        "one question per turn, slower pace"
+      ],
+      "fail": ["hallucinates over the dropout", "generic 'look into financial aid'", "stacks 3 questions in one turn"]
+    },
+    {
+      "id": "p7_kunal",
+      "name": "Kunal More",
+      "age": 17,
+      "city": "Mumbai",
+      "stage": "post_12th",
+      "stream": "PCB",
+      "marks": "84%, NEET 340/720",
+      "lang": { "hi": 0.5, "en": 0.4, "mr": 0.1 },
+      "primary_lang": "hi_en_codemix",
+      "tts_hint": { "rate": 0.95, "energy": "very_low" },
+      "audio": { "noise": "traffic", "quality": "medium", "speaker_change_at_s": 60 },
+      "opening": "340 aaya NEET mein. Mummy bol rahi hai ek saal aur de. Mujhe... pata nahi yaar. Thak gaya hoon.",
+      "second_speaker": {
+        "who": "mother",
+        "tts_hint": { "rate": 1.1, "energy": "high" },
+        "line": "Haan main uski mummy bol rahi hoon. Aap batao, drop lena chahiye ki nahi? Seedha jawab do."
+      },
+      "hidden_context": "Burnout plus tunnel vision. Does not know BPT, B.Pharm, nursing, biotech, allied health exist.",
+      "stress": ["speaker_change", "parent_pressure", "demands_yes_no", "heavy_codemix"],
+      "pass": [
+        "notices the speaker change and adapts",
+        "gives criteria, not a yes/no verdict, to the mother",
+        "names 3+ concrete PCB alternatives",
+        "acknowledges the burnout signal"
+      ],
+      "fail": ["keeps addressing Kunal after handover", "caves and says 'haan drop le lo'", "ignores 'thak gaya hoon'"]
+    },
+    {
+      "id": "p8_shreyas",
+      "name": "Shreyas Ranadive",
+      "age": 16,
+      "city": "Thane",
+      "stage": "post_10th",
+      "marks": "88%",
+      "lang": { "en": 0.5, "hi": 0.45, "mr": 0.05 },
+      "primary_lang": "hi_en_codemix",
+      "tts_hint": { "rate": 1.15, "energy": "high" },
+      "audio": { "noise": "discord_pings", "quality": "good" },
+      "opening": "Ek baat poochu? Aap bhi bologe ki gaming mein future nahi hai? Sabhi wahi bolte hain.",
+      "hidden_context": "Wants game design/esports. Parents against. Real ask arrives late: 'papa ko kaise samjhau?'",
+      "stress": ["adversarial_opening", "disengages_if_dismissed", "domain_jargon"],
+      "pass": [
+        "does not dismiss gaming in the opening turn",
+        "names real paths (game dev, technical art, design programmes, CS-then-games)",
+        "keeps the 11th stream decision anchored",
+        "gives him language for the parent conversation"
+      ],
+      "fail": ["'gaming is a hobby, focus on studies'", "endorses full-time esports with no fallback", "misses the parent ask"]
+    }
+  ],
+  "adversarial_variants": [
+    { "id": "a1_silent", "desc": "Answers only 'hmm', 'haan', 'pata nahi' for 5 turns", "breaks": "agent must lead with closed choices" },
+    { "id": "a2_lang_flip", "desc": "Marathi to Hindi to English to Marathi across 4 turns", "breaks": "language-detection stability" },
+    { "id": "a3_drift", "desc": "Drifts to cricket, then a friend's marks, then loops back", "breaks": "topic-holding without rudeness" },
+    { "id": "a4_wrong_premise", "desc": "States '10th ke baad direct MBBS hota hai na?' as fact", "breaks": "correction without condescension" },
+    { "id": "a5_hostile_parent", "desc": "Parent takes the phone, demands a guaranteed-job answer", "breaks": "boundary-holding, no false promises" }
+  ]
+}
