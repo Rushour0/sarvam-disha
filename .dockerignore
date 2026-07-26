@@ -7,6 +7,10 @@ agent/cases/
 **/__pycache__/
 data/raw/
 testing/recordings/
-web/
+# web/ is NOT excluded: web/Dockerfile builds from this same root context.
+# Only its build artefacts are.
+web/node_modules/
+web/.next/
+web/tsconfig.tsbuildinfo
 *.md
 .git/
