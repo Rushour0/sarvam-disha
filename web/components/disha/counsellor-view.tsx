@@ -2,23 +2,22 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, DatabaseZap } from 'lucide-react';
+import { ArrowLeft, DatabaseZap, Lock } from 'lucide-react';
 import { DishaBrand } from '@/components/disha/disha-brand';
+import { type CaseApiState, type CounsellorSession, mergeSessions } from '@/lib/disha-cases';
 import {
   type ConstraintName,
   DISHA_STORAGE_PREFIX,
-  type DishaEvent,
   type DishaFlagType,
   type StoredDishaSession,
   deriveDishaSnapshot,
-  parseDishaEvent,
   readAllStoredSessions,
 } from '@/lib/disha-events';
 import { cn } from '@/lib/shadcn/utils';
 
-interface CounsellorSession extends StoredDishaSession {
-  source: 'api' | 'browser';
-  signupPhone: string | null;
+interface CounsellorViewProps {
+  initialSessions: CounsellorSession[];
+  apiState: CaseApiState;
 }
 
 const CONSTRAINT_LABELS: Record<ConstraintName, string> = {
@@ -41,192 +40,6 @@ const SESSION_DATE_FORMATTER = new Intl.DateTimeFormat('hi-IN', {
   timeStyle: 'short',
 });
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function extractRoom(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (!isRecord(value)) return '';
-
-  for (const key of ['room', 'room_name', 'id', 'name']) {
-    if (typeof value[key] === 'string') return value[key];
-  }
-  return '';
-}
-
-function timestampToMilliseconds(value: unknown): number {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value < 10_000_000_000 ? value * 1000 : value;
-  }
-  if (typeof value === 'string') {
-    const parsed = Date.parse(value);
-    return Number.isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;
-}
-
-function extractEvents(value: unknown): DishaEvent[] {
-  if (!isRecord(value)) return [];
-
-  const rawEvents = Array.isArray(value.events)
-    ? value.events
-    : Array.isArray(value.timeline)
-      ? value.timeline
-      : [];
-  const events = rawEvents.map(parseDishaEvent).filter((event) => event !== null);
-
-  if (isRecord(value.constraints)) {
-    for (const [name, constraintValue] of Object.entries(value.constraints)) {
-      const rawValue = isRecord(constraintValue) ? constraintValue.value : constraintValue;
-      const parsed = parseDishaEvent({
-        type: 'constraint',
-        ts: isRecord(constraintValue) ? (constraintValue.ts ?? 0) : 0,
-        name,
-        value: rawValue,
-      });
-      if (parsed) events.push(parsed);
-    }
-  } else if (Array.isArray(value.constraints)) {
-    for (const constraint of value.constraints) {
-      if (!isRecord(constraint)) continue;
-      const parsed = parseDishaEvent({
-        type: 'constraint',
-        ts: constraint.ts ?? 0,
-        name: constraint.name,
-        value: constraint.value,
-      });
-      if (parsed) events.push(parsed);
-    }
-  }
-
-  if (Array.isArray(value.flags)) {
-    for (const flag of value.flags) {
-      if (!isRecord(flag)) continue;
-      const parsed = parseDishaEvent({
-        type: 'flag',
-        ts: flag.ts ?? 0,
-        flag_type: flag.flag_type ?? flag.flag,
-        quote: flag.quote,
-      });
-      if (parsed) events.push(parsed);
-    }
-  }
-
-  return events;
-}
-
-function extractSignupPhone(value: unknown): string | null {
-  if (!isRecord(value)) return null;
-  const caseValue = isRecord(value.case) ? value.case : value;
-  return typeof caseValue.phone === 'string' ? caseValue.phone : null;
-}
-
-function normaliseApiSession(
-  value: unknown,
-  fallbackRoom = '',
-  fallbackSignupPhone: string | null = null,
-  fallbackUpdatedAt = 0
-): CounsellorSession | null {
-  if (!isRecord(value)) return null;
-
-  const caseValue = isRecord(value.case) ? value.case : value;
-  const room = extractRoom(caseValue) || fallbackRoom;
-  if (!room) return null;
-
-  const events = extractEvents(caseValue);
-  const latestEvent = events.reduce((latest, event) => Math.max(latest, event.ts * 1000), 0);
-  const updatedAt =
-    timestampToMilliseconds(
-      caseValue.updated_at ?? caseValue.updatedAt ?? caseValue.updated ?? caseValue.ts
-    ) ||
-    latestEvent ||
-    fallbackUpdatedAt;
-
-  return {
-    room,
-    events,
-    updatedAt,
-    source: 'api',
-    signupPhone: extractSignupPhone(caseValue) ?? fallbackSignupPhone,
-  };
-}
-
-function extractCaseList(value: unknown): unknown[] {
-  if (Array.isArray(value)) return value;
-  if (isRecord(value) && Array.isArray(value.cases)) return value.cases;
-  return [];
-}
-
-async function fetchApiSessions(signal: AbortSignal): Promise<CounsellorSession[]> {
-  const configuredBase = process.env.NEXT_PUBLIC_DISHA_API?.trim();
-  if (!configuredBase) throw new Error('API not configured');
-
-  const base = configuredBase.replace(/\/+$/, '');
-  const casesResponse = await fetch(`${base}/cases`, { cache: 'no-store', signal });
-  if (!casesResponse.ok) throw new Error(`Cases request failed: ${casesResponse.status}`);
-
-  const caseList = extractCaseList(await casesResponse.json());
-  const sessions = await Promise.all(
-    caseList.map(async (caseEntry) => {
-      const room = extractRoom(caseEntry);
-      if (!room) return null;
-      const signupPhone = extractSignupPhone(caseEntry);
-      const updatedAt = isRecord(caseEntry)
-        ? timestampToMilliseconds(
-            caseEntry.updated_at ?? caseEntry.updatedAt ?? caseEntry.updated ?? caseEntry.ts
-          )
-        : 0;
-
-      try {
-        const detailResponse = await fetch(`${base}/cases/${encodeURIComponent(room)}`, {
-          cache: 'no-store',
-          signal,
-        });
-        if (detailResponse.ok) {
-          return normaliseApiSession(await detailResponse.json(), room, signupPhone, updatedAt);
-        }
-      } catch (error) {
-        if (signal.aborted) throw error;
-      }
-
-      return normaliseApiSession(caseEntry, room, signupPhone, updatedAt);
-    })
-  );
-
-  return sessions.filter((session) => session !== null);
-}
-
-function mergeSessions(
-  apiSessions: CounsellorSession[],
-  browserSessions: StoredDishaSession[]
-): CounsellorSession[] {
-  const merged = new Map<string, CounsellorSession>();
-
-  for (const session of browserSessions) {
-    merged.set(session.room, { ...session, source: 'browser', signupPhone: null });
-  }
-  for (const session of apiSessions) {
-    const localSession = merged.get(session.room);
-    const combinedEvents = localSession
-      ? [...localSession.events, ...session.events]
-      : session.events;
-    const uniqueEvents = [
-      ...new Map(
-        combinedEvents.map((event) => [`${event.type}:${event.ts}:${JSON.stringify(event)}`, event])
-      ).values(),
-    ];
-    merged.set(session.room, {
-      ...session,
-      events: uniqueEvents,
-      updatedAt: Math.max(session.updatedAt, localSession?.updatedAt ?? 0),
-      source: 'api',
-    });
-  }
-
-  return [...merged.values()].sort((a, b) => b.updatedAt - a.updatedAt);
-}
-
 function SessionSource({ source }: { source: CounsellorSession['source'] }) {
   return (
     <span
@@ -242,10 +55,42 @@ function SessionSource({ source }: { source: CounsellorSession['source'] }) {
   );
 }
 
-export function CounsellorView() {
+function ApiNotice({
+  apiState,
+  browserSessionCount,
+}: {
+  apiState: CaseApiState;
+  browserSessionCount: number;
+}) {
+  if (apiState === 'ready') return null;
+
+  const fallback =
+    browserSessionCount > 0
+      ? ' इस browser में save हुए live sessions नीचे दिख रहे हैं।'
+      : ' Live session के events इस browser में आते ही यहाँ दिखेंगे।';
+
+  return (
+    <div className="border-disha-sun/35 bg-disha-sun/10 mt-6 flex items-start gap-3 rounded-xl border p-3 text-sm">
+      {apiState === 'not-configured' ? (
+        <>
+          <Lock className="text-disha-leaf mt-0.5 size-4 shrink-0" />
+          <p>
+            <span className="font-medium">DISHA_API_URL</span> set नहीं है, इसलिए server से cases
+            नहीं पढ़े गए।{fallback}
+          </p>
+        </>
+      ) : (
+        <>
+          <DatabaseZap className="text-disha-leaf mt-0.5 size-4 shrink-0" />
+          <p>Case API अभी उपलब्ध नहीं है।{fallback}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function CounsellorView({ initialSessions, apiState }: CounsellorViewProps) {
   const [browserSessions, setBrowserSessions] = useState<StoredDishaSession[]>([]);
-  const [apiSessions, setApiSessions] = useState<CounsellorSession[]>([]);
-  const [apiState, setApiState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
 
   useEffect(() => {
     const refreshBrowserSessions = () => setBrowserSessions(readAllStoredSessions());
@@ -255,27 +100,12 @@ export function CounsellorView() {
 
     refreshBrowserSessions();
     window.addEventListener('storage', handleStorage);
-    const controller = new AbortController();
-
-    fetchApiSessions(controller.signal)
-      .then((sessions) => {
-        setApiSessions(sessions);
-        setApiState('ready');
-      })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
-        setApiState('unavailable');
-      });
-
-    return () => {
-      controller.abort();
-      window.removeEventListener('storage', handleStorage);
-    };
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const sessions = useMemo(
-    () => mergeSessions(apiSessions, browserSessions),
-    [apiSessions, browserSessions]
+    () => mergeSessions(initialSessions, browserSessions),
+    [initialSessions, browserSessions]
   );
 
   return (
@@ -305,17 +135,7 @@ export function CounsellorView() {
           </p>
         </header>
 
-        {apiState === 'unavailable' && (
-          <div className="border-disha-sun/35 bg-disha-sun/10 mt-6 flex items-start gap-3 rounded-xl border p-3 text-sm">
-            <DatabaseZap className="text-disha-leaf mt-0.5 size-4 shrink-0" />
-            <p>
-              Case API अभी उपलब्ध नहीं है।
-              {browserSessions.length > 0
-                ? ' इस browser में save हुए live sessions नीचे दिख रहे हैं।'
-                : ' Live session के events इस browser में आते ही यहाँ दिखेंगे।'}
-            </p>
-          </div>
-        )}
+        <ApiNotice apiState={apiState} browserSessionCount={browserSessions.length} />
 
         {sessions.length === 0 ? (
           <section className="border-border/70 bg-card mt-8 rounded-[1.5rem] border border-dashed px-5 py-14 text-center">
@@ -328,16 +148,17 @@ export function CounsellorView() {
         ) : (
           <div className="border-border/70 bg-card mt-8 overflow-hidden rounded-[1.5rem] border">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px] border-collapse text-left">
+              <table className="w-full min-w-[1040px] border-collapse text-left">
                 <caption className="sr-only">
-                  Disha sessions with signup phones, practical constraints, and counsellor review
-                  notes
+                  Disha sessions with signup phones, practical constraints, shortlisted paths, and
+                  counsellor review notes
                 </caption>
                 <thead>
                   <tr className="bg-muted/70 text-muted-foreground text-xs tracking-wide uppercase">
                     <th className="px-5 py-3 font-semibold">Session</th>
                     <th className="px-5 py-3 font-semibold">Phone</th>
                     <th className="px-5 py-3 font-semibold">Constraints</th>
+                    <th className="px-5 py-3 font-semibold">Explored</th>
                     <th className="px-5 py-3 font-semibold">Review notes</th>
                     <th className="px-5 py-3 font-semibold">Updated</th>
                   </tr>
@@ -346,6 +167,8 @@ export function CounsellorView() {
                   {sessions.map((session) => {
                     const snapshot = deriveDishaSnapshot(session.events);
                     const constraints = Object.values(snapshot.constraints);
+                    const shortlist = snapshot.summary?.shortlist ?? [];
+                    const explored = shortlist.length > 0 ? shortlist : snapshot.careerPaths;
                     return (
                       <tr key={session.room} className="align-top">
                         <td className="px-5 py-5">
@@ -382,6 +205,25 @@ export function CounsellorView() {
                             </ul>
                           ) : (
                             <span className="text-muted-foreground text-xs">अभी नहीं मिला</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-5">
+                          {explored.length > 0 ? (
+                            <ul className="max-w-xs space-y-1.5">
+                              {explored.slice(0, 4).map((path, index) => (
+                                <li key={`${path}-${index}`} className="text-xs leading-5">
+                                  {path}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                          {snapshot.scholarships.length > 0 && (
+                            <p className="text-muted-foreground mt-2 text-[11px]">
+                              {snapshot.scholarships.length} scheme
+                              {snapshot.scholarships.length === 1 ? '' : 's'} shown
+                            </p>
                           )}
                         </td>
                         <td className="px-5 py-5">

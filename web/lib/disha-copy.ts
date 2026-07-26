@@ -68,6 +68,39 @@ export type DishaCopy = {
     refusalPrefix: string;
     refusalSuffix: string;
   };
+  /** The shape the conversation drew of the student: strengths, and what they
+   *  keep weighing. Read back to them, never as a verdict. */
+  pattern: {
+    heading: string;
+    subheading: string;
+    strengthsHeading: string;
+    weighsHeading: string;
+    testHeading: string;
+    empty: string;
+  };
+  /** Everything they can go and read for themselves after the call. */
+  explore: {
+    heading: string;
+    subheading: string;
+    pathsHeading: string;
+    scholarshipsHeading: string;
+    readingHeading: string;
+    sourcesHeading: string;
+    levelLabel: string;
+    durationLabel: string;
+    eligibilityLabel: string;
+    jobsLabel: string;
+    leadsToLabel: string;
+    amountLabel: string;
+    incomeCeilingLabel: string;
+    stateLabel: string;
+    openLink: string;
+    pagePrefix: string;
+    lockedTitle: string;
+    lockedBody: string;
+    lockedSkip: string;
+    empty: string;
+  };
   summary: {
     badge: string;
     heading: string;
@@ -170,6 +203,37 @@ export const DISHA_COPY: Record<DishaLanguage, DishaCopy> = {
       refusalPrefix: 'पूछा गया:',
       refusalSuffix: '— मेरी list में नहीं है',
     },
+    pattern: {
+      heading: 'आपकी अपनी बनावट',
+      subheading: 'ये आपकी बातों से निकला है — कोई टेस्ट का नंबर नहीं।',
+      strengthsHeading: 'जो आप में साफ़ दिखा',
+      weighsHeading: 'फैसला लेते वक़्त आप ये तौलते हैं',
+      testHeading: 'आपके टेस्ट का नतीजा',
+      empty: 'अगली बातचीत थोड़ी लंबी हुई तो यहाँ आपका pattern बनेगा।',
+    },
+    explore: {
+      heading: 'अब खुद पढ़िए',
+      subheading: 'जो बातचीत में निकला, उसके असली स्रोत — परिवार को भी दिखा सकते हैं।',
+      pathsHeading: 'आपके रास्ते, विस्तार से',
+      scholarshipsHeading: 'पैसे की मदद',
+      readingHeading: 'किताब से, जस का तस',
+      sourcesHeading: 'ये जानकारी कहाँ से आई',
+      levelLabel: 'कब',
+      durationLabel: 'कितने साल',
+      eligibilityLabel: 'योग्यता',
+      jobsLabel: 'काम',
+      leadsToLabel: 'इसके आगे',
+      amountLabel: 'राशि',
+      incomeCeilingLabel: 'आय सीमा',
+      stateLabel: 'राज्य',
+      openLink: 'पूरा पढ़ें',
+      pagePrefix: 'पेज',
+      lockedTitle: 'बाक़ी संदर्भ खुले हैं — नंबर देकर सहेज लीजिए',
+      lockedBody:
+        'नंबर देने पर पूरी सूची आपके फ़ोन पर भेज दी जाएगी और अगली बातचीत यहीं से शुरू होगी।',
+      lockedSkip: 'अभी नहीं, सब यहीं दिखा दीजिए',
+      empty: 'इस बातचीत में कोई संदर्भ नहीं जुड़ा।',
+    },
     summary: {
       badge: 'बातचीत का सार',
       heading: 'अब आगे की दिशा साफ़ है',
@@ -271,6 +335,37 @@ export const DISHA_COPY: Record<DishaLanguage, DishaCopy> = {
       listLimit: 'List boundary',
       refusalPrefix: 'Asked about:',
       refusalSuffix: '— not on my list',
+    },
+    pattern: {
+      heading: 'The shape of you',
+      subheading: 'Drawn from what you said — not from a test score.',
+      strengthsHeading: 'What came through clearly',
+      weighsHeading: 'What you weigh when you decide',
+      testHeading: 'Your test result',
+      empty: 'A longer conversation next time will fill this in.',
+    },
+    explore: {
+      heading: 'Now read it yourself',
+      subheading: 'The actual sources behind this conversation — show them to your family too.',
+      pathsHeading: 'Your paths, in detail',
+      scholarshipsHeading: 'Help with money',
+      readingHeading: 'Straight from the handbook',
+      sourcesHeading: 'Where this came from',
+      levelLabel: 'When',
+      durationLabel: 'Length',
+      eligibilityLabel: 'Eligibility',
+      jobsLabel: 'Work',
+      leadsToLabel: 'Leads to',
+      amountLabel: 'Amount',
+      incomeCeilingLabel: 'Income ceiling',
+      stateLabel: 'State',
+      openLink: 'Read the full page',
+      pagePrefix: 'page',
+      lockedTitle: 'The rest is open — leave a number and keep it',
+      lockedBody:
+        'Give a number and the full list goes to your phone, and the next conversation picks up here.',
+      lockedSkip: 'Not now — just show me everything',
+      empty: 'No references came up in this conversation.',
     },
     summary: {
       badge: 'Conversation summary',
@@ -376,6 +471,36 @@ export const DISHA_COPY: Record<DishaLanguage, DishaCopy> = {
       refusalPrefix: 'याबद्दल विचारलं:',
       refusalSuffix: '— माझ्या listमध्ये नाही',
     },
+    pattern: {
+      heading: 'तुमची स्वतःची ठेवण',
+      subheading: 'हे तुमच्याच बोलण्यातून आलं आहे — कुठल्या टेस्टच्या गुणांतून नाही.',
+      strengthsHeading: 'तुमच्यात स्पष्ट दिसलं ते',
+      weighsHeading: 'निर्णय घेताना तुम्ही हे तोलता',
+      testHeading: 'तुमच्या टेस्टचा निकाल',
+      empty: 'पुढच्या वेळी संभाषण थोडं लांब झालं की इथे तुमची ठेवण दिसेल.',
+    },
+    explore: {
+      heading: 'आता स्वतः वाचा',
+      subheading: 'या संभाषणामागचे खरे स्रोत — घरच्यांनाही दाखवू शकता.',
+      pathsHeading: 'तुमचे मार्ग, सविस्तर',
+      scholarshipsHeading: 'पैशाची मदत',
+      readingHeading: 'पुस्तकातून, जसंच्या तसं',
+      sourcesHeading: 'ही माहिती कुठून आली',
+      levelLabel: 'केव्हा',
+      durationLabel: 'किती वर्षं',
+      eligibilityLabel: 'पात्रता',
+      jobsLabel: 'काम',
+      leadsToLabel: 'याच्या पुढे',
+      amountLabel: 'रक्कम',
+      incomeCeilingLabel: 'उत्पन्न मर्यादा',
+      stateLabel: 'राज्य',
+      openLink: 'पूर्ण वाचा',
+      pagePrefix: 'पान',
+      lockedTitle: 'बाकीचे संदर्भ खुले आहेत — नंबर देऊन जपून ठेवा',
+      lockedBody: 'नंबर दिल्यावर पूर्ण यादी तुमच्या फोनवर जाईल आणि पुढचं संभाषण इथूनच सुरू होईल.',
+      lockedSkip: 'आता नको, सगळं इथेच दाखवा',
+      empty: 'या संभाषणात कोणताही संदर्भ आला नाही.',
+    },
     summary: {
       badge: 'संभाषणाचा सारांश',
       heading: 'पुढची दिशा आता स्पष्ट आहे',
@@ -478,6 +603,37 @@ export const DISHA_COPY: Record<DishaLanguage, DishaCopy> = {
       listLimit: 'பட்டியலின் வரம்பு',
       refusalPrefix: 'கேட்கப்பட்டது:',
       refusalSuffix: '— என் list-இல் இல்லை',
+    },
+    pattern: {
+      heading: 'உங்கள் சொந்த வடிவம்',
+      subheading: 'இது நீங்கள் சொன்னதிலிருந்து வந்தது — எந்தத் தேர்வு மதிப்பெண்ணிலிருந்தும் அல்ல.',
+      strengthsHeading: 'உங்களில் தெளிவாகத் தெரிந்தது',
+      weighsHeading: 'முடிவெடுக்கும்போது நீங்கள் எடைபோடுவது',
+      testHeading: 'உங்கள் தேர்வு முடிவு',
+      empty: 'அடுத்த முறை உரையாடல் சற்று நீண்டால் உங்கள் வடிவம் இங்கே தெரியும்.',
+    },
+    explore: {
+      heading: 'இப்போது நீங்களே படியுங்கள்',
+      subheading: 'இந்த உரையாடலுக்குப் பின்னால் உள்ள உண்மையான ஆதாரங்கள் — வீட்டிலும் காட்டலாம்.',
+      pathsHeading: 'உங்கள் பாதைகள், விரிவாக',
+      scholarshipsHeading: 'பணத்திற்கான உதவி',
+      readingHeading: 'கையேட்டிலிருந்து, அப்படியே',
+      sourcesHeading: 'இந்தத் தகவல் எங்கிருந்து வந்தது',
+      levelLabel: 'எப்போது',
+      durationLabel: 'எத்தனை ஆண்டு',
+      eligibilityLabel: 'தகுதி',
+      jobsLabel: 'வேலை',
+      leadsToLabel: 'இதற்கு அடுத்து',
+      amountLabel: 'தொகை',
+      incomeCeilingLabel: 'வருமான வரம்பு',
+      stateLabel: 'மாநிலம்',
+      openLink: 'முழுவதையும் படிக்க',
+      pagePrefix: 'பக்கம்',
+      lockedTitle: 'மீதி ஆதாரங்கள் திறந்தே உள்ளன — எண் கொடுத்துச் சேமியுங்கள்',
+      lockedBody:
+        'எண் கொடுத்தால் முழுப் பட்டியலும் உங்கள் தொலைபேசிக்கு வரும், அடுத்த உரையாடல் இங்கிருந்தே தொடங்கும்.',
+      lockedSkip: 'இப்போது வேண்டாம் — எல்லாவற்றையும் இங்கேயே காட்டுங்கள்',
+      empty: 'இந்த உரையாடலில் எந்த ஆதாரமும் வரவில்லை.',
     },
     summary: {
       badge: 'உரையாடல் சுருக்கம்',

@@ -52,6 +52,7 @@ DISHA_INTERRUPT_MIN_DURATION = float(os.environ.get("DISHA_INTERRUPT_MIN_DURATIO
 DISHA_INTERRUPT_MIN_WORDS = int(os.environ.get("DISHA_INTERRUPT_MIN_WORDS", "0"))  # Keep 0 on Sarvam STT.
 DISHA_TTS_MIN_BUFFER = int(os.environ.get("DISHA_TTS_MIN_BUFFER", "30"))  # Sweep: 30-100 chars.
 DISHA_TTS_MAX_CHUNK = int(os.environ.get("DISHA_TTS_MAX_CHUNK", "150"))  # Sweep: 50-300 chars.
+DISHA_TTS_SPEAKER = os.environ.get("DISHA_TTS_SPEAKER", "pooja")  # bulbul:v3 female voice.
 
 
 def build_llm():
@@ -139,6 +140,9 @@ async def entrypoint(ctx: JobContext) -> None:
 
     tts = sarvam.TTS(
         model="bulbul:v3",
+        # Disha is a woman; bulbul:v3 defaults to the male voice "shubh" when
+        # no speaker is given, so it must be named explicitly.
+        speaker=DISHA_TTS_SPEAKER,
         target_language_code=lang["tts"],
         min_buffer_size=DISHA_TTS_MIN_BUFFER,
         max_chunk_length=DISHA_TTS_MAX_CHUNK,

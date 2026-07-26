@@ -318,14 +318,10 @@ async def search_careers_ranked(query: str, limit: int = 5) -> list[dict[str, ob
         if str(document["path"]) in seen:
             continue
         seen.add(str(document["path"]))
-        combined.append(
-            {
-                "path": document["path"],
-                "jobs": document["jobs"],
-                "link": document["link"],
-                "children": document["children"],
-            }
-        )
+        # Everything except the search text, which only existed to be indexed.
+        # Dropping the sourced level/duration/eligibility here is what left the
+        # student with a bare path name and nothing to go and read.
+        combined.append({key: value for key, value in document.items() if key != "text"})
     return combined[:limit]
 
 
@@ -442,7 +438,12 @@ class EventSink:
 
 DISHA_INSTRUCTIONS = """
 You are Disha, a warm career counsellor for class 11-12 and fresh-pass students
-in tier-3/4 India. Speak in the student's language: begin in natural, simple
+in tier-3/4 India. Disha is a woman, and Hindi and Marathi mark the speaker's
+gender on first-person verbs — always use the feminine form when speaking about
+yourself: "main samjhaati hoon" and "main bata sakti hoon", never "samjhaata
+hoon" or "bata sakta hoon"; in Marathi "mi sangte", never "mi sangto". This
+applies to every self-referring verb, in every language you speak.
+Speak in the student's language: begin in natural, simple
 Hindi, follow them into Marathi or English, and handle code-mixing naturally.
 Your spoken replies must stay short: 1-3 sentences and exactly one question per
 turn. Sound like a conversation, never a form or checklist.
@@ -671,8 +672,22 @@ class Disha(Agent):
                 "type": "career",
                 "query": query,
                 "paths": paths,
+                # The whole node, not a three-field summary of it. The student
+                # screen turns level, duration, eligibility and the source link
+                # into something they can go and read after the call; sending
+                # only the name left them with nothing to follow up on.
                 "matches": [
-                    {"path": m["path"], "jobs": m["jobs"], "link": m["link"]}
+                    {
+                        "path": m["path"],
+                        "jobs": m.get("jobs", ""),
+                        "link": m.get("link", ""),
+                        "children": m.get("children", []),
+                        **{
+                            field: m[field]
+                            for field in ("level", "duration", "eligibility", "note", "state")
+                            if m.get(field)
+                        },
+                    }
                     for m in matches
                 ],
             }
@@ -707,8 +722,15 @@ class Disha(Agent):
             {
                 "type": "kb",
                 "query": query,
+                # Carry the passage itself: a page number the student cannot
+                # read is a citation they have to take on trust.
                 "citations": [
-                    {"source": m["source"], "page": m["page"], "citation": m["citation"]}
+                    {
+                        "source": m["source"],
+                        "page": m["page"],
+                        "citation": m["citation"],
+                        "text": m["text"],
+                    }
                     for m in matches
                 ],
             }
@@ -750,10 +772,9 @@ class Disha(Agent):
             {
                 "type": "scholarship",
                 "query": query,
-                "schemes": [
-                    {"name": scheme["name"], "provider": scheme["provider"]}
-                    for scheme in results[:4]
-                ],
+                # Amount, income ceiling and the government page it came from
+                # are the parts a family actually acts on.
+                "schemes": results[:4],
             }
         )
         return results[:4]

@@ -36,16 +36,50 @@ export interface RefusalEvent extends DishaEventBase {
   asked_about: string;
 }
 
+/** One pathway-tree node as the agent found it, with everything a student can
+ *  go and read for themselves: where it leads, how long it takes, and the link. */
+export interface CareerMatch {
+  path: string;
+  jobs: string;
+  link: string;
+  level?: string;
+  duration?: string;
+  eligibility?: string;
+  note?: string;
+  state?: string;
+  children: string[];
+}
+
 export interface CareerEvent extends DishaEventBase {
   type: 'career';
   query: string;
   paths: string[];
+  matches: CareerMatch[];
+}
+
+export interface ScholarshipScheme {
+  name: string;
+  provider: string;
+  level: string;
+  eligibility: string;
+  source_url: string;
+  amount?: string;
+  income_ceiling?: string;
+  state?: string;
+}
+
+export interface ScholarshipEvent extends DishaEventBase {
+  type: 'scholarship';
+  query: string;
+  schemes: ScholarshipScheme[];
 }
 
 export interface KbCitation {
   source: string;
   page: number;
   citation: string;
+  /** The passage the agent actually read, so the student can re-read it. */
+  text?: string;
 }
 
 export interface KbEvent extends DishaEventBase {
@@ -83,6 +117,7 @@ export type DishaEvent =
   | FlagEvent
   | RefusalEvent
   | CareerEvent
+  | ScholarshipEvent
   | KbEvent
   | SummaryEvent
   | StrengthEvent
@@ -97,6 +132,8 @@ export interface StoredDishaSession {
 export interface DishaSessionSnapshot {
   constraints: Partial<Record<ConstraintName, ConstraintEvent>>;
   careerPaths: string[];
+  careerMatches: CareerMatch[];
+  scholarships: ScholarshipScheme[];
   citations: KbCitation[];
   flags: FlagEvent[];
   refusals: RefusalEvent[];
@@ -124,6 +161,47 @@ function isCitationArray(value: unknown): value is KbCitation[] {
         typeof item.citation === 'string'
     )
   );
+}
+
+/** Copy a field only when the source actually carried a value. An empty
+ *  string rendered as "Duration: " reads as missing data, not as absent data. */
+function optionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+}
+
+function parseCareerMatch(value: unknown): CareerMatch | null {
+  if (!isRecord(value) || typeof value.path !== 'string' || value.path.length === 0) {
+    return null;
+  }
+
+  return {
+    path: value.path,
+    jobs: typeof value.jobs === 'string' ? value.jobs : '',
+    link: typeof value.link === 'string' ? value.link : '',
+    level: optionalString(value.level),
+    duration: optionalString(value.duration),
+    eligibility: optionalString(value.eligibility),
+    note: optionalString(value.note),
+    state: optionalString(value.state),
+    children: isStringArray(value.children) ? value.children : [],
+  };
+}
+
+function parseScholarshipScheme(value: unknown): ScholarshipScheme | null {
+  if (!isRecord(value) || typeof value.name !== 'string' || value.name.length === 0) {
+    return null;
+  }
+
+  return {
+    name: value.name,
+    provider: typeof value.provider === 'string' ? value.provider : '',
+    level: typeof value.level === 'string' ? value.level : '',
+    eligibility: typeof value.eligibility === 'string' ? value.eligibility : '',
+    source_url: typeof value.source_url === 'string' ? value.source_url : '',
+    amount: optionalString(value.amount),
+    income_ceiling: optionalString(value.income_ceiling),
+    state: optionalString(value.state),
+  };
 }
 
 function isStrengthArray(value: unknown): value is DishaStrength[] {
@@ -185,22 +263,40 @@ export function parseDishaEvent(value: unknown): DishaEvent | null {
             asked_about: value.asked_about,
           }
         : null;
-    case 'career':
-      return typeof value.query === 'string' && isStringArray(value.paths)
-        ? {
-            type: 'career',
-            ts: value.ts,
-            query: value.query,
-            paths: value.paths,
-          }
+    case 'career': {
+      if (typeof value.query !== 'string' || !isStringArray(value.paths)) return null;
+      // Sessions recorded before the agent sent full matches only have paths.
+      // Reconstruct a bare match so the reading list still renders those rows.
+      const matches = Array.isArray(value.matches)
+        ? value.matches.map(parseCareerMatch).filter((match) => match !== null)
+        : value.paths.map((path) => ({ path, jobs: '', link: '', children: [] }));
+      return {
+        type: 'career',
+        ts: value.ts,
+        query: value.query,
+        paths: value.paths,
+        matches,
+      };
+    }
+    case 'scholarship': {
+      if (typeof value.query !== 'string' || !Array.isArray(value.schemes)) return null;
+      const schemes = value.schemes.map(parseScholarshipScheme).filter((scheme) => scheme !== null);
+      return schemes.length > 0
+        ? { type: 'scholarship', ts: value.ts, query: value.query, schemes }
         : null;
+    }
     case 'kb':
       return typeof value.query === 'string' && isCitationArray(value.citations)
         ? {
             type: 'kb',
             ts: value.ts,
             query: value.query,
-            citations: value.citations,
+            citations: value.citations.map((citation) => ({
+              source: citation.source,
+              page: citation.page,
+              citation: citation.citation,
+              text: optionalString(citation.text),
+            })),
           }
         : null;
     case 'summary':
@@ -252,6 +348,8 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
   const snapshot: DishaSessionSnapshot = {
     constraints: {},
     careerPaths: [],
+    careerMatches: [],
+    scholarships: [],
     citations: [],
     flags: [],
     refusals: [],
@@ -260,6 +358,8 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
   const seenPaths = new Set<string>();
   const seenCitations = new Set<string>();
   const seenStrengthLabels = new Set<string>();
+  const matchByPath = new Map<string, CareerMatch>();
+  const schemeByName = new Map<string, ScholarshipScheme>();
 
   for (const event of events) {
     switch (event.type) {
@@ -272,6 +372,17 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
             snapshot.careerPaths.push(path);
             seenPaths.add(path);
           }
+        }
+        for (const match of event.matches) {
+          // A later lookup of the same node can carry detail an earlier one
+          // lacked, so merge rather than keep whichever arrived first.
+          const existing = matchByPath.get(match.path);
+          matchByPath.set(match.path, existing ? { ...existing, ...match } : match);
+        }
+        break;
+      case 'scholarship':
+        for (const scheme of event.schemes) {
+          if (!schemeByName.has(scheme.name)) schemeByName.set(scheme.name, scheme);
         }
         break;
       case 'kb':
@@ -304,6 +415,13 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
         break;
     }
   }
+
+  // Keep the order the conversation surfaced them in — that ordering is the
+  // student's own priority, not an alphabetical one we invented.
+  snapshot.careerMatches = snapshot.careerPaths
+    .map((path) => matchByPath.get(path))
+    .filter((match) => match !== undefined);
+  snapshot.scholarships = [...schemeByName.values()];
 
   return snapshot;
 }
