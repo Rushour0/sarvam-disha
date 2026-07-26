@@ -1,25 +1,11 @@
 'use client';
 
-import { Award, BookOpen, Check, Leaf, Route, Sparkles } from 'lucide-react';
+import { Award, BookOpen, Check, GraduationCap, Leaf, Route, Sparkles } from 'lucide-react';
 import { useDishaSession } from '@/components/disha/disha-session-provider';
 import { StrengthCard } from '@/components/disha/strength-card';
-import { CONSTRAINT_NAMES, type ConstraintName, type DishaFlagType } from '@/lib/disha-events';
+import { useDishaCopy } from '@/lib/disha-copy';
+import { CONSTRAINT_NAMES } from '@/lib/disha-events';
 import { cn } from '@/lib/shadcn/utils';
-
-const CONSTRAINT_LABELS: Record<ConstraintName, { hi: string; en: string }> = {
-  distance_from_home: { hi: 'घर से दूरी', en: 'Distance from home' },
-  hostel_needed: { hi: 'हॉस्टल', en: 'Hostel needed' },
-  fee_ceiling: { hi: 'फीस सीमा', en: 'Fee ceiling' },
-  family_permission: { hi: 'परिवार की सहमति', en: 'Family permission' },
-  scholarship_dependence: { hi: 'स्कॉलरशिप', en: 'Scholarship dependence' },
-};
-
-const FLAG_LABELS: Record<DishaFlagType, string> = {
-  distress: 'थोड़ा ठहरकर सुनना ज़रूरी है',
-  family_pressure: 'परिवार का दबाव सामने आया',
-  choice_paralysis: 'फैसला कठिन लग रहा है',
-  self_harm: 'अभी किसी भरोसेमंद व्यक्ति का साथ ज़रूरी है',
-};
 
 function PathBreadcrumb({ path }: { path: string }) {
   return (
@@ -38,19 +24,20 @@ function PathBreadcrumb({ path }: { path: string }) {
 
 export function DishaSessionPanel() {
   const { snapshot } = useDishaSession();
+  const copy = useDishaCopy();
   const filledConstraintCount = Object.keys(snapshot.constraints).length;
 
   return (
     <>
       <StrengthCard strengths={snapshot.strengths} />
       <aside
-        aria-label="बातचीत से मिली जानकारी"
+        aria-label={copy.panel.ariaLabel}
         className="border-border/70 bg-disha-paper/85 relative flex min-h-0 flex-col overflow-hidden rounded-[1.75rem] border shadow-[0_20px_60px_-40px_rgba(22,74,71,0.45)] backdrop-blur"
       >
         <div className="border-border/60 flex items-center justify-between border-b px-4 py-3.5 md:px-5">
           <div>
-            <p className="text-sm font-semibold">आपकी बातों से</p>
-            <p className="text-muted-foreground text-xs">बिना फ़ॉर्म, बातचीत के दौरान</p>
+            <p className="text-sm font-semibold">{copy.panel.heading}</p>
+            <p className="text-muted-foreground text-xs">{copy.panel.subheading}</p>
           </div>
           {filledConstraintCount > 0 && (
             <span className="bg-disha-leaf/10 text-disha-leaf rounded-full px-2.5 py-1 font-mono text-[11px] font-bold">
@@ -72,7 +59,7 @@ export function DishaSessionPanel() {
                   id="test-result-title"
                   className="text-xs font-bold tracking-[0.12em] uppercase"
                 >
-                  टेस्ट का नतीजा
+                  {copy.panel.testResult}
                 </h2>
               </div>
               <p className="text-disha-leaf mt-2 text-sm font-semibold">
@@ -89,7 +76,7 @@ export function DishaSessionPanel() {
               <div className="mb-3 flex items-center gap-2">
                 <Sparkles className="text-disha-sun size-4" aria-hidden="true" />
                 <h2 id="strengths-title" className="text-xs font-bold tracking-[0.12em] uppercase">
-                  आपकी ताकत
+                  {copy.panel.strengths}
                 </h2>
               </div>
               <ul className="space-y-2">
@@ -110,7 +97,7 @@ export function DishaSessionPanel() {
 
           {filledConstraintCount === 0 && (
             <p className="text-muted-foreground px-1 py-6 text-center text-xs leading-5">
-              बातचीत के दौरान जो समझ आएगा, वो यहाँ अपने आप जुड़ता जाएगा।
+              {copy.panel.subheading}
             </p>
           )}
 
@@ -122,7 +109,7 @@ export function DishaSessionPanel() {
                   id="constraints-title"
                   className="text-xs font-bold tracking-[0.12em] uppercase"
                 >
-                  Practical fit
+                  {copy.panel.practicalFit}
                 </h2>
               </div>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
@@ -144,10 +131,10 @@ export function DishaSessionPanel() {
                       </span>
                       <span className="min-w-0">
                         <span className="block text-sm leading-4 font-medium">
-                          {CONSTRAINT_LABELS[name].hi}
+                          {copy.panel.constraints[name].label}
                         </span>
                         <span className="text-muted-foreground mt-0.5 block truncate text-[11px] leading-4">
-                          {event?.value || CONSTRAINT_LABELS[name].en}
+                          {event?.value || copy.panel.constraints[name].emptyValue}
                         </span>
                       </span>
                     </li>
@@ -162,7 +149,7 @@ export function DishaSessionPanel() {
               <div className="mb-3 flex items-center gap-2">
                 <Route className="text-disha-sun size-4" aria-hidden="true" />
                 <h2 id="careers-title" className="text-xs font-bold tracking-[0.12em] uppercase">
-                  Career paths
+                  {copy.panel.careerPaths}
                 </h2>
               </div>
               <ul className="space-y-2">
@@ -173,12 +160,41 @@ export function DishaSessionPanel() {
             </section>
           )}
 
+          {snapshot.scholarships.length > 0 && (
+            <section aria-labelledby="scholarships-title" aria-live="polite">
+              <div className="mb-3 flex items-center gap-2">
+                <GraduationCap className="text-disha-leaf size-4" aria-hidden="true" />
+                <h2
+                  id="scholarships-title"
+                  className="text-xs font-bold tracking-[0.12em] uppercase"
+                >
+                  {copy.explore.scholarshipsHeading}
+                </h2>
+              </div>
+              <ul className="space-y-2">
+                {snapshot.scholarships.map((scheme) => (
+                  <li
+                    key={scheme.name}
+                    className="border-disha-leaf/25 bg-disha-leaf/7 rounded-xl border p-3"
+                  >
+                    <p className="text-sm leading-5 font-medium">{scheme.name}</p>
+                    {scheme.amount && (
+                      <p className="text-muted-foreground mt-1 text-xs leading-5">
+                        {copy.explore.amountLabel}: {scheme.amount}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {snapshot.citations.length > 0 && (
             <section aria-labelledby="sources-title" aria-live="polite">
               <div className="mb-3 flex items-center gap-2">
                 <BookOpen className="text-disha-leaf size-4" aria-hidden="true" />
                 <h2 id="sources-title" className="text-xs font-bold tracking-[0.12em] uppercase">
-                  Sources
+                  {copy.panel.sources}
                 </h2>
               </div>
               <ul className="space-y-1.5">
@@ -188,7 +204,10 @@ export function DishaSessionPanel() {
                     className="border-border/70 bg-card text-muted-foreground rounded-xl border p-2.5 text-xs leading-5"
                   >
                     <span className="text-foreground font-medium">{citation.source}</span>
-                    <span className="ml-1.5 font-mono">p.{citation.page}</span>
+                    <span className="ml-1.5 font-mono">
+                      {copy.panel.pagePrefix}
+                      {citation.page}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -198,7 +217,7 @@ export function DishaSessionPanel() {
           {snapshot.flags.length > 0 && (
             <section aria-labelledby="notes-title" aria-live="polite">
               <h2 id="notes-title" className="mb-3 text-xs font-bold tracking-[0.12em] uppercase">
-                ध्यान देने वाली बात
+                {copy.panel.attentionNote}
               </h2>
               <ul className="space-y-2">
                 {snapshot.flags.map((flag, index) => {
@@ -213,7 +232,7 @@ export function DishaSessionPanel() {
                           : 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100'
                       )}
                     >
-                      <p className="text-xs font-semibold">{FLAG_LABELS[flag.flag_type]}</p>
+                      <p className="text-xs font-semibold">{copy.panel.flags[flag.flag_type]}</p>
                       <blockquote className="mt-1.5 text-sm leading-5">“{flag.quote}”</blockquote>
                     </li>
                   );
@@ -228,14 +247,14 @@ export function DishaSessionPanel() {
                 id="refusals-title"
                 className="mb-2 text-xs font-bold tracking-[0.12em] uppercase"
               >
-                सूची की सीमा
+                {copy.panel.listLimit}
               </h2>
               <ul className="text-muted-foreground space-y-1.5 text-xs leading-5">
                 {snapshot.refusals.map((refusal, index) => (
                   <li key={`${refusal.ts}-${index}`}>
-                    asked about{' '}
-                    <span className="text-foreground font-medium">{refusal.asked_about}</span> — not
-                    in my list
+                    {copy.panel.refusalPrefix}{' '}
+                    <span className="text-foreground font-medium">{refusal.asked_about}</span>{' '}
+                    {copy.panel.refusalSuffix}
                   </li>
                 ))}
               </ul>

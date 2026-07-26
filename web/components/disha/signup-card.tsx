@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, type ReactNode, useId, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { useRoomContext } from '@livekit/components-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,12 @@ import { cn } from '@/lib/shadcn/utils';
 interface SignupCardProps {
   prominent: boolean;
   onSignedUp?: () => void;
+  /** Override the pitch when the card is asking for the number in a specific
+   *  context — the reference gate explains what unlocking actually gives. */
+  title?: string;
+  body?: string;
+  /** Extra control rendered under the form, e.g. a "show me anyway" escape. */
+  footer?: ReactNode;
 }
 
 // DEMO ONLY: This hardcoded OTP stands in for a real SMS provider and must be
@@ -39,7 +45,7 @@ async function persistSignup(caseId: string, phone: string): Promise<void> {
   }
 }
 
-export function SignupCard({ prominent, onSignedUp }: SignupCardProps) {
+export function SignupCard({ prominent, onSignedUp, title, body, footer }: SignupCardProps) {
   const room = useRoomContext();
   const phoneId = useId();
   const phoneErrorId = `${phoneId}-error`;
@@ -126,9 +132,10 @@ export function SignupCard({ prominent, onSignedUp }: SignupCardProps) {
         prominent ? 'border-disha-leaf bg-disha-leaf/10 border-2' : 'border-border/70 bg-card'
       )}
     >
-      <h2 className="font-semibold">और गहराई से जानना है?</h2>
+      <h2 className="font-semibold">{title ?? 'और गहराई से जानना है?'}</h2>
       <p className="text-muted-foreground mt-2 text-sm leading-6">
-        मोबाइल नंबर दीजिए — Disha आपकी प्रगति याद रखेगी और अगली बातचीत वहीं से शुरू होगी।
+        {body ??
+          'मोबाइल नंबर दीजिए — Disha आपकी प्रगति याद रखेगी और अगली बातचीत वहीं से शुरू होगी।'}
       </p>
       <form className="mt-3" noValidate onSubmit={handleSignup}>
         {step === 'phone' ? (
@@ -242,6 +249,7 @@ export function SignupCard({ prominent, onSignedUp }: SignupCardProps) {
           </>
         )}
       </form>
+      {footer}
     </aside>
   );
 }
