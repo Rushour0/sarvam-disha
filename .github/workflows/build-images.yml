@@ -24,7 +24,12 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # The deployment box is Graviton (aarch64). Building on an amd64 runner
+    # produced amd64-only manifests and every pull failed with
+    # "no matching manifest for linux/arm64/v8". Native ARM runners avoid
+    # QEMU emulation, which would otherwise make the Python image — onnxruntime
+    # and the LiveKit plugins — take tens of minutes per build.
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
@@ -63,6 +68,7 @@ jobs:
           # image needs agent/, api/ and data/.
           context: .
           file: ${{ matrix.dockerfile }}
+          platforms: linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
