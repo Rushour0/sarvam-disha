@@ -13,7 +13,11 @@ import type { NextRequest } from 'next/server';
  * blocked outright rather than left open — a missing secret should fail closed.
  */
 
-const PROTECTED = ['/counsellor', '/api/disha/cases'];
+// NOTE: /counsellor is intentionally left open (no auth) per an explicit
+// operator decision. The rendered page shows student phone numbers and
+// verbatim wellbeing quotes, so anyone with the URL can read them. The raw
+// bulk-cases path stays gated as defence in depth.
+const PROTECTED = ['/api/disha/cases'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -52,5 +56,5 @@ function safeEqual(a: string | undefined, b: string): boolean {
 }
 
 export const config = {
-  matcher: ['/counsellor/:path*', '/api/disha/cases/:path*', '/counsellor', '/api/disha/cases'],
+  matcher: ['/api/disha/cases/:path*', '/api/disha/cases'],
 };
