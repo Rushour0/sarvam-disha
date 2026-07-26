@@ -14,6 +14,7 @@ on:
       - 'scripts/index_kb.py'
       - 'web/**'
       - 'Dockerfile'
+      - '.dockerignore'
       - 'requirements.txt'
       - '.github/workflows/build-images.yml'
   workflow_dispatch:
