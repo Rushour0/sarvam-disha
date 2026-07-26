@@ -1,0 +1,36 @@
+name: Deploy blog
+
+# The blog is static and self-contained, so it deploys on its own schedule
+# rather than waiting on the agent or the web app. The path filter keeps a
+# change to the Python agent from redeploying it for no reason.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sarvam-blog/**'
+      - '.github/workflows/deploy-blog.yml'
+  # Manual runs are useful for a rollback or a first deploy.
+  workflow_dispatch:
+
+concurrency:
+  # A newer commit supersedes an in-flight deploy; there is nothing to preserve
+  # in a half-finished upload of static files.
+  group: deploy-blog
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # No build step: index.html and styles.css are the artefact.
+          command: pages deploy sarvam-blog --project-name=sarvam-blog --branch=main
