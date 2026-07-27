@@ -7,9 +7,27 @@
     "kind": "path",
     "level": "emerging",
     "note": "A portfolio of small projects matters as much as a degree here; many start free with engines like Unity or Unreal. Confirm any course or college details before enrolling.",
-    "jobs": ["Game Developer", "Gameplay Programmer", "Technical Artist"],
-    "keywords": ["gaming", "video games", "game dev", "making games", "coding games", "unity", "unreal", "roblox", "minecraft mods"],
-    "scholarship_tags": ["skilling", "free_learning", "technical"],
+    "jobs": [
+      "Game Developer",
+      "Gameplay Programmer",
+      "Technical Artist"
+    ],
+    "keywords": [
+      "gaming",
+      "video games",
+      "game dev",
+      "making games",
+      "coding games",
+      "unity",
+      "unreal",
+      "roblox",
+      "minecraft mods"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning",
+      "technical"
+    ],
     "children": [],
     "source_id": "nonlinear",
     "link": "https://learn.unity.com/"
@@ -22,12 +40,25 @@
     "kind": "path",
     "level": "emerging",
     "note": "Grows from playing, breaking down and re-imagining games; a strong portfolio of designs and prototypes speaks louder than a single qualification.",
-    "jobs": ["Game Designer", "Level Designer", "Narrative Designer"],
-    "keywords": ["game ideas", "designing games", "storytelling in games", "level design", "board games"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "Game Designer",
+      "Level Designer",
+      "Narrative Designer"
+    ],
+    "keywords": [
+      "game ideas",
+      "designing games",
+      "storytelling in games",
+      "level design",
+      "board games"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://learn.unity.com/"
   },
   {
     "id": "nl-game-art-animation",
@@ -37,12 +68,27 @@
     "kind": "path",
     "level": "emerging",
     "note": "Builds on a love of drawing, characters or animation; free tools and online tutorials can take you far before any formal course.",
-    "jobs": ["3D Artist", "2D Animator", "Concept Artist"],
-    "keywords": ["drawing", "art", "sketching", "animation", "characters", "digital art", "blender"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "3D Artist",
+      "2D Animator",
+      "Concept Artist"
+    ],
+    "keywords": [
+      "drawing",
+      "art",
+      "sketching",
+      "animation",
+      "characters",
+      "digital art",
+      "blender"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://www.blender.org/"
   },
   {
     "id": "nl-esports",
@@ -52,12 +98,24 @@
     "kind": "path",
     "level": "emerging",
     "note": "Highly competitive and income is uncertain at the top; many players build a parallel path in coaching, casting or content so they are not depending on tournaments alone.",
-    "jobs": ["Professional Player", "Team Coach", "Shoutcaster", "Community Manager"],
-    "keywords": ["competitive gaming", "tournaments", "esports", "bgmi", "valorant", "pro player"],
+    "jobs": [
+      "Professional Player",
+      "Team Coach",
+      "Shoutcaster",
+      "Community Manager"
+    ],
+    "keywords": [
+      "competitive gaming",
+      "tournaments",
+      "esports",
+      "bgmi",
+      "valorant",
+      "pro player"
+    ],
     "scholarship_tags": [],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://www.youtube.com/creators/"
   },
   {
     "id": "nl-content-creation",
@@ -67,12 +125,28 @@
     "kind": "path",
     "level": "emerging",
     "note": "Starts with consistently making things you enjoy; skills in scripting, editing and audience-building compound over time. Income is irregular early on.",
-    "jobs": ["Creator", "Scriptwriter", "Video Editor", "Thumbnail Designer"],
-    "keywords": ["youtube", "instagram", "reels", "making videos", "vlogging", "influencer", "podcasting"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "Creator",
+      "Scriptwriter",
+      "Video Editor",
+      "Thumbnail Designer"
+    ],
+    "keywords": [
+      "youtube",
+      "instagram",
+      "reels",
+      "making videos",
+      "vlogging",
+      "influencer",
+      "podcasting"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://www.youtube.com/creators/"
   },
   {
     "id": "nl-video-editing",
@@ -82,12 +156,26 @@
     "kind": "path",
     "level": "emerging",
     "note": "A skill you can learn from free tutorials and freelance early; a reel of your edits is your qualification.",
-    "jobs": ["Video Editor", "Motion Designer", "Reels Editor"],
-    "keywords": ["editing", "video editing", "after effects", "premiere", "capcut", "reels editing"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "Video Editor",
+      "Motion Designer",
+      "Reels Editor"
+    ],
+    "keywords": [
+      "editing",
+      "video editing",
+      "after effects",
+      "premiere",
+      "capcut",
+      "reels editing"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://www.blackmagicdesign.com/products/davinciresolve"
   },
   {
     "id": "nl-digital-marketing",
@@ -97,12 +185,27 @@
     "kind": "path",
     "level": "emerging",
     "note": "Open to any stream; free certifications and running real (even small) campaigns build the fastest credibility.",
-    "jobs": ["Social Media Manager", "Performance Marketer", "SEO Specialist", "Brand Strategist"],
-    "keywords": ["marketing", "social media", "instagram growth", "ads", "branding", "seo"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "Social Media Manager",
+      "Performance Marketer",
+      "SEO Specialist",
+      "Brand Strategist"
+    ],
+    "keywords": [
+      "marketing",
+      "social media",
+      "instagram growth",
+      "ads",
+      "branding",
+      "seo"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://grow.google/intl/en_in/"
   },
   {
     "id": "nl-entrepreneurship",
@@ -112,9 +215,24 @@
     "kind": "path",
     "level": "emerging",
     "note": "There is no fixed qualification; it grows from solving a real problem, building skills and starting small. Government support and guidance exist through Startup India.",
-    "jobs": ["Founder", "Co-founder", "Solopreneur"],
-    "keywords": ["startup", "business idea", "founder", "entrepreneur", "own business", "side hustle", "selling online"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "Founder",
+      "Co-founder",
+      "Solopreneur"
+    ],
+    "keywords": [
+      "startup",
+      "business idea",
+      "founder",
+      "entrepreneur",
+      "own business",
+      "side hustle",
+      "selling online"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
     "link": "https://www.startupindia.gov.in/"
@@ -127,12 +245,23 @@
     "kind": "path",
     "level": "emerging",
     "note": "Usually reached after some experience in tech, design or business; a habit of thinking about how apps and products could be better is the starting signal.",
-    "jobs": ["Associate Product Manager", "Product Analyst"],
-    "keywords": ["building apps", "product ideas", "improving apps", "how things work"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "Associate Product Manager",
+      "Product Analyst"
+    ],
+    "keywords": [
+      "building apps",
+      "product ideas",
+      "improving apps",
+      "how things work"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://nptel.ac.in/"
   },
   {
     "id": "nl-ux-ui-design",
@@ -142,12 +271,26 @@
     "kind": "path",
     "level": "emerging",
     "note": "Blends creativity with problem-solving; free tools like Figma and a portfolio of redesigns can open the door without a specific degree.",
-    "jobs": ["UX Designer", "UI Designer", "Product Designer"],
-    "keywords": ["design", "apps", "figma", "user experience", "how apps look", "drawing interfaces"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "UX Designer",
+      "UI Designer",
+      "Product Designer"
+    ],
+    "keywords": [
+      "design",
+      "apps",
+      "figma",
+      "user experience",
+      "how apps look",
+      "drawing interfaces"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://www.figma.com/resource-library/"
   },
   {
     "id": "nl-software-self-taught",
@@ -157,12 +300,28 @@
     "kind": "path",
     "level": "emerging",
     "note": "Many enter through free courses and a project portfolio rather than only a degree; building and shipping small apps is the strongest signal.",
-    "jobs": ["Frontend Developer", "Backend Developer", "Freelance Developer"],
-    "keywords": ["coding", "programming", "making apps", "websites", "python", "web development", "freelancing"],
-    "scholarship_tags": ["skilling", "free_learning", "technical"],
+    "jobs": [
+      "Frontend Developer",
+      "Backend Developer",
+      "Freelance Developer"
+    ],
+    "keywords": [
+      "coding",
+      "programming",
+      "making apps",
+      "websites",
+      "python",
+      "web development",
+      "freelancing"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning",
+      "technical"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://www.freecodecamp.org/"
   },
   {
     "id": "nl-creative-writing",
@@ -172,11 +331,26 @@
     "kind": "path",
     "level": "emerging",
     "note": "Builds on a love of reading and writing; a public body of work (blog, threads, samples) matters more than a specific stream.",
-    "jobs": ["Copywriter", "Content Writer", "Blogger", "Technical Writer"],
-    "keywords": ["writing", "reading", "stories", "blogging", "poetry", "copywriting"],
-    "scholarship_tags": ["skilling", "free_learning"],
+    "jobs": [
+      "Copywriter",
+      "Content Writer",
+      "Blogger",
+      "Technical Writer"
+    ],
+    "keywords": [
+      "writing",
+      "reading",
+      "stories",
+      "blogging",
+      "poetry",
+      "copywriting"
+    ],
+    "scholarship_tags": [
+      "skilling",
+      "free_learning"
+    ],
     "children": [],
     "source_id": "nonlinear",
-    "link": ""
+    "link": "https://swayam.gov.in/"
   }
 ]
