@@ -81,8 +81,10 @@ services:
       # code; set a real one in Coolify before real traffic.
       - DISHA_SESSION_SECRET=${DISHA_SESSION_SECRET:-}
     volumes:
-      # Read-only: the API only serves what the worker wrote.
-      - sarvam-disha-cases:/app/agent/cases:ro
+      # Read-write: the API serves what the worker wrote AND appends the
+      # signup event that /signup (phone + OTP login) persists. A :ro mount
+      # here made every login 500 with "Read-only file system".
+      - sarvam-disha-cases:/app/agent/cases
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8090/health"]
       interval: 15s
