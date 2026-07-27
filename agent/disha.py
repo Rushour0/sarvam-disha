@@ -36,6 +36,14 @@ with PATHWAY_TREE_PATH.open(encoding="utf-8") as pathway_file:
 
 PATHWAY_NODES: list[dict[str, object]] = list(PATHWAY_TREE.get("nodes", []))
 
+# New-age, creative and entrepreneurial paths the SIH degree/vocational tree
+# does not cover (gaming, content, startups, self-taught tech). Merged into the
+# same corpus so search_careers grounds and returns them like any other path.
+NONLINEAR_PATHS_PATH = REPO_ROOT / "data" / "nonlinear_careers.json"
+if NONLINEAR_PATHS_PATH.is_file():
+    with NONLINEAR_PATHS_PATH.open(encoding="utf-8") as nonlinear_file:
+        PATHWAY_NODES.extend(json.load(nonlinear_file))
+
 with SCHOLARSHIPS_PATH.open(encoding="utf-8") as scholarships_file:
     SCHOLARSHIPS: list[dict[str, object]] = json.load(scholarships_file)
 
@@ -283,12 +291,16 @@ def build_career_documents() -> list[dict[str, object]]:
     documents: list[dict[str, object]] = []
     for node in PATHWAY_NODES:
         jobs = ", ".join(node.get("jobs", []))
-        documents.append(
-            {
-                **_node_result(node),
-                "text": f"{node['path']}. Jobs: {jobs}" if jobs else str(node["path"]),
-            }
-        )
+        # Hobby/interest terms let a student's own words ("gaming", "youtube",
+        # "startup") reach a path whose formal name never mentions them. Indexed
+        # only; never surfaced back to the student.
+        keywords = ", ".join(str(term) for term in node.get("keywords", []))
+        text = str(node["path"])
+        if jobs:
+            text += f". Jobs: {jobs}"
+        if keywords:
+            text += f". Interests: {keywords}"
+        documents.append({**_node_result(node), "text": text})
     return documents
 
 
@@ -435,6 +447,7 @@ def load_case_facts(case_key: str) -> dict[str, object]:
     facts: dict[str, object] = {
         "constraints": {},
         "notes": [],
+        "decisions": [],
         "profile": {},
         "had_summary": False,
     }
@@ -450,6 +463,8 @@ def load_case_facts(case_key: str) -> dict[str, object]:
             facts["constraints"][event["name"]] = event.get("value", "")
         elif etype == "note" and event.get("note"):
             facts["notes"].append(event["note"])
+        elif etype == "decision" and event.get("decision"):
+            facts["decisions"].append(event["decision"])
         elif etype == "profile":
             # Later events win, field by field, mirroring how save_profile
             # merges rather than replaces.
@@ -546,6 +561,16 @@ socha tha, par ab jo aapne bataya uske hisaab se Y zyaada fit lagta hai"). Never
 present the first paths you named as a fixed answer; let the shortlist grow and
 change as the conversation does.
 
+Hobbies are career signal, not small talk. Ask what they play, watch, make, or
+lose track of time doing — gaming, editing videos, drawing, building things,
+selling online, coaching friends. Treat these as real leads: pass the hobby
+itself to search_careers, which now knows new-age paths — game development,
+game design, content creation, design, digital marketing, starting a business,
+self-taught software — and offer a grounded non-linear path built from that
+hobby, not only the exam-and-degree route. Speak the path's honest note (many
+grow from a portfolio or free courses rather than one fixed qualification). A
+hobby often reveals the interest and working style a form never would.
+
 When the student interrupts you, their words are the priority: your next reply
 must be one complete new sentence that directly answers what they just said.
 Never emit a fragment or continuation of the sentence that was cut off, and
@@ -570,6 +595,12 @@ When the student shares a personal fact that will matter for guidance later
 (father's occupation, a sibling's city, a responsibility at home, a subject
 they love or fear), call remember_student with one short note. Use it
 sparingly — notable facts only, never transcripts or feelings.
+
+When the student makes or leans toward a choice — a stream, a path, ruling
+something out, wanting to try something new — call save_decision with one short
+line. Over sessions these build the picture of who this student is becoming and
+where they are heading, so a later conversation can pick up the thread instead
+of starting over.
 
 Grounding rule: you may only name or describe a career, course, job, or path
 that search_careers returned this session — its path, jobs, link, or children.
@@ -1161,6 +1192,27 @@ class Disha(Agent):
             retrieval.remember_fact(self._case_id, "note", "", note)
         )
         return "Noted."
+
+    @function_tool
+    async def save_decision(self, decision: str) -> str:
+        """Record a real choice or leaning, to build the long-term picture of
+        who this student is becoming across sessions.
+
+        Call whenever the student commits to or leans toward something — a
+        stream, a path, ruling an option out, "I want to try game design".
+        One concise line, in your words.
+
+        Args:
+            decision: The concrete decision or leaning, e.g. "leaning toward a
+                diploma over 11th-12th", "wants to explore game development".
+        """
+        if self._safety_lock:
+            return CAREER_TOOLS_LOCKED
+        await self._event_sink.emit({"type": "decision", "decision": decision})
+        retrieval.fire_and_forget(
+            retrieval.remember_fact(self._case_id, "decision", "", decision)
+        )
+        return "Decision recorded."
 
     @function_tool
     async def recall_memory(self, query: str) -> list[dict[str, object]]:
