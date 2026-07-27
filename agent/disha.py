@@ -189,6 +189,102 @@ def opportunity_key(document: dict[str, object]) -> str:
     return str(document["id"])
 
 
+# ---------------------------------------------------------------------------
+# Dynamic sources: nightly-refreshed external records (data/dynamic/*.json)
+# ---------------------------------------------------------------------------
+#
+# These arrive from scripts/refresh_data.py on a flexible schema: a few core
+# keys (id, name, source, source_url, fetched_on, kind) plus an open passthrough
+# of whatever else the upstream source returned. The loader never assumes a
+# fixed field set: it reads whatever is there, builds search text from every
+# text-ish value, and presents only sourced fields so nothing invites invention.
+# A missing directory or a malformed file degrades to "no dynamic records"
+# rather than breaking this module's import (scripts/index_kb.py imports it).
+
+DYNAMIC_DIR = REPO_ROOT / "data" / "dynamic"
+
+# Keys that are plumbing, not content a student searches on.
+_DYNAMIC_NON_SEARCHABLE_KEYS = frozenset(
+    {"id", "source", "source_url", "fetched_on", "text"}
+)
+# Never handed back to the model: internal plumbing or search scaffolding.
+_DYNAMIC_HIDDEN_KEYS = frozenset({"id", "text", "applies_to"})
+
+
+def _dynamic_text(record: dict[str, object]) -> str:
+    """Search text from every string / list-of-string value in the record.
+
+    New fields become searchable automatically: whatever key an upstream source
+    adds, its text flows into BM25 and the embedding without a code change.
+    """
+    parts: list[str] = []
+    for key, value in record.items():
+        if key in _DYNAMIC_NON_SEARCHABLE_KEYS:
+            continue
+        if isinstance(value, str):
+            if value:
+                parts.append(value)
+        elif isinstance(value, list):
+            parts.extend(
+                str(item) for item in value if isinstance(item, str) and item
+            )
+    return ". ".join(parts)
+
+
+def _load_dynamic_records() -> list[dict[str, object]]:
+    """Read every data/dynamic/*.json, tolerant of the flexible schema.
+
+    A missing directory, a non-list file, or a bad JSON file is skipped, not
+    fatal: a broken refresh must never take the agent down on the next import.
+    """
+    if not DYNAMIC_DIR.is_dir():
+        return []
+    records: list[dict[str, object]] = []
+    for path in sorted(DYNAMIC_DIR.glob("*.json")):
+        try:
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(loaded, list):
+            records.extend(
+                entry
+                for entry in loaded
+                if isinstance(entry, dict) and entry.get("id")
+            )
+    return records
+
+
+DYNAMIC_RECORDS: list[dict[str, object]] = _load_dynamic_records()
+DYNAMIC_DOCUMENTS = [
+    {**record, "text": str(record.get("text") or _dynamic_text(record))}
+    for record in DYNAMIC_RECORDS
+]
+_DYNAMIC_BM25 = retrieval.BM25(
+    [str(document["text"]) for document in DYNAMIC_DOCUMENTS]
+)
+
+
+def dynamic_key(document: dict[str, object]) -> str:
+    return str(document["id"])
+
+
+def _present_dynamic(record: dict[str, object]) -> dict[str, object]:
+    """Only sourced fields, so a live record never invites invention.
+
+    Flexible by design: every non-empty value the source provided is passed
+    through as-is (a scheme amount or an eligibility tag is exactly what a
+    family acts on), minus internal plumbing. Nothing is ever synthesised here.
+    """
+    result: dict[str, object] = {}
+    for key, value in record.items():
+        if key in _DYNAMIC_HIDDEN_KEYS:
+            continue
+        if value is None or value == "" or value == []:
+            continue
+        result[key] = value
+    return result
+
+
 def _present_opportunity(opp: dict[str, object]) -> dict[str, object]:
     """Only fields with a sourced value, so nothing invites invention."""
     result: dict[str, object] = {
@@ -968,6 +1064,44 @@ class Disha(Agent):
                 "type": "opportunity",
                 "query": query,
                 "opportunities": results,
+            }
+        )
+        return results
+
+    @function_tool
+    async def find_latest_resources(self, query: str) -> list[dict[str, object]]:
+        """Search the nightly-refreshed external records for current listings.
+
+        Use for the most up-to-date government schemes, openings or listings
+        pulled in automatically overnight, newer than the curated scholarship
+        and opportunity lists. Returns only real records that were actually
+        fetched, each carrying its source_url; speak nothing the tool did not
+        return and invent no numbers.
+
+        Args:
+            query: What the student is looking for, e.g. "scholarship for
+                girls", "skill training centre near me", "scheme after 12th".
+        """
+        if self._safety_lock:
+            return [{"locked": True, "instruction": CAREER_TOOLS_LOCKED}]
+        if not DYNAMIC_DOCUMENTS:
+            return []
+        matched = await retrieval.hybrid_search(
+            query=query,
+            documents=DYNAMIC_DOCUMENTS,
+            text_key="text",
+            key_of=dynamic_key,
+            collection=retrieval.DYNAMIC_COLLECTION,
+            limit=4,
+            bm25=_DYNAMIC_BM25,
+            sparse_query=" ".join(_content_terms(query)),
+        )
+        results = [_present_dynamic(record) for record in matched]
+        await self._event_sink.emit(
+            {
+                "type": "dynamic",
+                "query": query,
+                "resources": results,
             }
         )
         return results

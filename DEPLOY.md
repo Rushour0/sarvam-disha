@@ -106,6 +106,35 @@ deploy:
 
     docker compose run --rm indexer
 
+## Nightly data refresh (box side)
+
+`scripts/refresh_data.py` pulls fresh external records (currently data.gov.in
+institution lists) into `data/dynamic/` on a flexible schema. The GitHub Actions
+workflow `.github/workflows/refresh-data.yml` runs it at 01:00 UTC and commits
+any diff to `main`, so the Coolify deploy picks the new data up on its next
+deploy like any other KB change. It needs a `DATA_GOV_API_KEY` repo secret.
+
+The bare-metal box cannot pull the ghcr images, so it refreshes locally with
+`scripts/box_refresh.sh`:
+
+1. `git pull` — the committed `data/dynamic/*.json` land on disk.
+2. `docker compose build sarvam-indexer sarvam-agent` — data is baked into the
+   image (`Dockerfile`: `COPY data/ ./data/`), so the new files only reach the
+   containers after a rebuild. If the box instead bind-mounts `./data`, drop
+   this step.
+3. `docker compose run --rm sarvam-indexer` — re-embeds every collection,
+   including the new `disha_dynamic`, into Qdrant.
+4. `docker compose up -d --force-recreate sarvam-agent` — the agent reloads
+   `data/*.json` at import.
+
+Schedule it from the box's own crontab (do NOT commit this line; set it on the
+box, and fix the path to wherever the repo is checked out):
+
+    30 1 * * * /home/ubuntu/disha/scripts/box_refresh.sh >> /var/log/disha-refresh.log 2>&1
+
+It runs at 01:30 UTC, half an hour after the workflow commits, so the pull has
+something to fetch.
+
 ## Resource notes
 
 - The image is one build shared by three services; Coolify builds it once.

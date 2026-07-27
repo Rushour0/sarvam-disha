@@ -101,6 +101,9 @@ services:
       - LIVEKIT_URL=${LIVEKIT_URL}
       - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
       - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      # Server-only: the /me guide generator calls OpenAI from the Next server.
+      # Never exposed to the client (no NEXT_PUBLIC_ prefix).
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - DISHA_API_ORIGIN=http://sarvam-api:8090
       - BLOG_ORIGIN=${BLOG_ORIGIN:-https://sarvam-blog.pages.dev}
       # Basic auth for /counsellor and /api/disha/cases. Unset means those

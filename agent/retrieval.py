@@ -44,6 +44,10 @@ HANDBOOK_COLLECTION = "disha_handbook"
 CAREERS_COLLECTION = "disha_careers"
 SCHOLARSHIPS_COLLECTION = "disha_scholarships"
 OPPORTUNITIES_COLLECTION = "disha_opportunities"
+# Nightly-refreshed external records (data/dynamic/*.json). One shared
+# collection across all dynamic sources: the flexible schema means new sources
+# just add rows, never a new collection to wire up.
+DYNAMIC_COLLECTION = "disha_dynamic"
 
 _QDRANT_TIMEOUT = float(os.environ.get("QDRANT_TIMEOUT", "3.0"))
 _RRF_K = 20  # fabri's value: two short pools, so the web-scale 60 flattens rank

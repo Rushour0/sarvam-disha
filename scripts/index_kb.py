@@ -29,9 +29,11 @@ load_dotenv(REPO_ROOT / ".env.local", override=True)
 import retrieval  # noqa: E402  - needs the .env loaded and agent/ on the path
 from disha import (  # noqa: E402
     CAREER_DOCUMENTS,
+    DYNAMIC_DOCUMENTS,
     OPPORTUNITY_DOCUMENTS,
     SCHOLARSHIP_DOCUMENTS,
     career_document_key,
+    dynamic_key,
     handbook_chunk_key,
     opportunity_key,
     scholarship_key,
@@ -149,6 +151,22 @@ async def main() -> int:
         reset=True,
     )
     if not opportunities_ok:
+        return 1
+
+    dynamic_ok = await index(
+        retrieval.DYNAMIC_COLLECTION,
+        DYNAMIC_DOCUMENTS,
+        dynamic_key,
+        lambda record: {
+            "kind": str(record.get("kind", "dynamic")),
+            "name": str(record.get("name", "")),
+            "source": str(record.get("source", "")),
+            "source_url": str(record.get("source_url", "")),
+            "text": str(record.get("text", "")),
+        },
+        reset=True,
+    )
+    if not dynamic_ok:
         return 1
 
     print("done")

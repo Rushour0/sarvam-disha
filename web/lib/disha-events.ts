@@ -131,6 +131,33 @@ export interface TestResultEvent extends DishaEventBase {
   evidence: string[];
 }
 
+/** A concrete choice or leaning the student voiced, saved by the agent as the
+ *  thinking firmed up. Kept in call order so the profile can show how the
+ *  student's decision moved over time, not just where it landed. */
+export interface DecisionEvent extends DishaEventBase {
+  type: 'decision';
+  decision: string;
+}
+
+/** One real, free (or free-to-learn) programme the agent surfaced — a way to
+ *  start on an interest without a degree or a fee. Only sourced fields are
+ *  carried, so nothing on the page invites invention. */
+export interface OpportunityScheme {
+  name: string;
+  provider: string;
+  what: string;
+  cost: string;
+  source_url: string;
+  level?: string;
+  eligibility?: string;
+}
+
+export interface OpportunityEvent extends DishaEventBase {
+  type: 'opportunity';
+  query: string;
+  opportunities: OpportunityScheme[];
+}
+
 export type DishaEvent =
   | ConstraintEvent
   | FlagEvent
@@ -142,7 +169,9 @@ export type DishaEvent =
   | ProfileEvent
   | SummaryEvent
   | StrengthEvent
-  | TestResultEvent;
+  | TestResultEvent
+  | DecisionEvent
+  | OpportunityEvent;
 
 export interface StoredDishaSession {
   room: string;
@@ -160,6 +189,8 @@ export interface DishaSessionSnapshot {
   refusals: RefusalEvent[];
   strengths: DishaStrength[];
   utterances: UtteranceEvent[];
+  decisions: DecisionEvent[];
+  opportunities: OpportunityScheme[];
   profile?: ProfileEvent;
   summary?: SummaryEvent;
   testResult?: TestResultEvent;
@@ -207,6 +238,22 @@ function parseCareerMatch(value: unknown): CareerMatch | null {
     note: optionalString(value.note),
     state: optionalString(value.state),
     children: isStringArray(value.children) ? value.children : [],
+  };
+}
+
+function parseOpportunityScheme(value: unknown): OpportunityScheme | null {
+  if (!isRecord(value) || typeof value.name !== 'string' || value.name.length === 0) {
+    return null;
+  }
+
+  return {
+    name: value.name,
+    provider: typeof value.provider === 'string' ? value.provider : '',
+    what: typeof value.what === 'string' ? value.what : '',
+    cost: typeof value.cost === 'string' ? value.cost : '',
+    source_url: typeof value.source_url === 'string' ? value.source_url : '',
+    level: optionalString(value.level),
+    eligibility: optionalString(value.eligibility),
   };
 }
 
@@ -379,6 +426,23 @@ export function parseDishaEvent(value: unknown): DishaEvent | null {
             evidence: value.evidence,
           }
         : null;
+    case 'decision':
+      return typeof value.decision === 'string' && value.decision.trim().length > 0
+        ? {
+            type: 'decision',
+            ts: value.ts,
+            decision: value.decision,
+          }
+        : null;
+    case 'opportunity': {
+      if (typeof value.query !== 'string' || !Array.isArray(value.opportunities)) return null;
+      const opportunities = value.opportunities
+        .map(parseOpportunityScheme)
+        .filter((opportunity) => opportunity !== null);
+      return opportunities.length > 0
+        ? { type: 'opportunity', ts: value.ts, query: value.query, opportunities }
+        : null;
+    }
     default:
       return null;
   }
@@ -403,12 +467,15 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
     refusals: [],
     strengths: [],
     utterances: [],
+    decisions: [],
+    opportunities: [],
   };
   const seenPaths = new Set<string>();
   const seenCitations = new Set<string>();
   const seenStrengthLabels = new Set<string>();
   const matchByPath = new Map<string, CareerMatch>();
   const schemeByName = new Map<string, ScholarshipScheme>();
+  const opportunityByName = new Map<string, OpportunityScheme>();
 
   for (const event of events) {
     switch (event.type) {
@@ -470,6 +537,18 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
       case 'test_result':
         snapshot.testResult = event;
         break;
+      case 'decision':
+        // Keep every decision in the order it was voiced — the sequence is the
+        // student's own record of how the choice firmed up.
+        snapshot.decisions.push(event);
+        break;
+      case 'opportunity':
+        for (const opportunity of event.opportunities) {
+          if (!opportunityByName.has(opportunity.name)) {
+            opportunityByName.set(opportunity.name, opportunity);
+          }
+        }
+        break;
     }
   }
 
@@ -479,6 +558,7 @@ export function deriveDishaSnapshot(events: DishaEvent[]): DishaSessionSnapshot 
     .map((path) => matchByPath.get(path))
     .filter((match) => match !== undefined);
   snapshot.scholarships = [...schemeByName.values()];
+  snapshot.opportunities = [...opportunityByName.values()];
 
   return snapshot;
 }
