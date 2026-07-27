@@ -16,8 +16,10 @@ import os
 import time
 from pathlib import Path
 
+import httpx
 from fastapi import Cookie, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 CASES_DIR = Path(os.environ.get("DISHA_CASES_DIR", Path(__file__).resolve().parent.parent / "agent" / "cases"))
@@ -36,10 +38,19 @@ class SignupRequest(BaseModel):
     phone: str
 
 
+class OtpStartRequest(BaseModel):
+    phone: str
+
+
+class OtpVerifyRequest(BaseModel):
+    phone: str
+    code: str
+
+
 # HMAC key for the session cookie. The default keeps the demo working out of
-# the box; set a real value in the deployment env. The cookie only gates the
-# student's own profile page — the OTP itself is still the hardcoded demo one,
-# so this is a soft gate either way.
+# the box; set a real value in the deployment env. The session is now only
+# minted after a real Twilio-verified OTP (see /otp/verify), so this key is
+# what makes the profile gate meaningful — set it in production.
 SESSION_SECRET = (os.environ.get("DISHA_SESSION_SECRET") or "disha-demo-secret").encode()
 SESSION_COOKIE = "disha_session"
 SESSION_TTL_SECONDS = 180 * 24 * 3600
@@ -154,31 +165,168 @@ def list_cases() -> list[dict]:
     return out
 
 
-@app.post("/signup")
-def create_signup(signup: SignupRequest, response: Response) -> dict:
-    if len(signup.phone) != 10 or not signup.phone.isascii() or not signup.phone.isdigit():
-        raise HTTPException(status_code=400, detail="phone must be exactly 10 digits")
+def _write_signup_and_cookie(case_safe: str, phone: str, response: Response) -> dict:
+    """Append the signup event and set the session cookie on `response`.
 
-    safe = _safe_name(signup.case)
-    if not safe:
-        raise HTTPException(status_code=400, detail="case must contain a valid filename character")
-
-    event = {"type": "signup", "ts": int(time.time()), "phone": signup.phone}
+    Shared by POST /signup and POST /otp/verify so both mint the session the
+    exact same way. The browser reaches these routes through the web app's
+    /api/disha rewrite, so the cookie lands on the product's own origin.
+    HttpOnly keeps it out of page scripts; the profile page forwards it back
+    server-side.
+    """
+    event = {"type": "signup", "ts": int(time.time()), "phone": phone}
     CASES_DIR.mkdir(parents=True, exist_ok=True)
-    _append_json_line(CASES_DIR / f"{safe}.json", event)
-
-    # The browser reaches this route through the web app's /api/disha rewrite,
-    # so the cookie lands on the product's own origin. HttpOnly keeps it out of
-    # page scripts; the profile page forwards it back server-side.
+    _append_json_line(CASES_DIR / f"{case_safe}.json", event)
     response.set_cookie(
         key=SESSION_COOKIE,
-        value=mint_session(signup.phone),
+        value=mint_session(phone),
         max_age=SESSION_TTL_SECONDS,
         httponly=True,
         samesite="lax",
         path="/",
     )
-    return {"ok": True, "case": safe, "event": event}
+    return event
+
+
+# The old public POST /signup minted a session from a phone number alone, with
+# no OTP — reachable directly through the /api/disha rewrite, so anyone could
+# forge a session and read another student's profile. It is removed: a session
+# is now only minted by /otp/verify after a real Twilio-verified code, through
+# the shared _write_signup_and_cookie helper below.
+
+TWILIO_VERIFY_BASE = "https://verify.twilio.com/v2/Services"
+DEV_BYPASS_CODE = "123456"
+
+
+def _twilio_config() -> tuple[str, str, str] | None:
+    """Twilio Verify creds, or None if any are missing (fail closed).
+
+    Read per-request so an unset secret yields a clean 503 rather than a
+    boot-time crash.
+    """
+    sid = (os.environ.get("TWILIO_SID") or "").strip()
+    token = (os.environ.get("TWILIO_AUTH_TOKEN") or "").strip()
+    service = (os.environ.get("TWILIO_VERIFY_SERVICE_SID") or "").strip()
+    if not sid or not token or not service:
+        return None
+    return sid, token, service
+
+
+def _dev_bypass_enabled() -> bool:
+    """Local-dev escape hatch: accept the fixed code when Twilio is absent.
+
+    Requires DISHA_OTP_DEV_BYPASS to be set and the service not marked
+    production, so it can never be flipped on in the deployed image.
+    """
+    if not os.environ.get("DISHA_OTP_DEV_BYPASS"):
+        return False
+    return os.environ.get("DISHA_ENV", "").lower() != "production"
+
+
+def _normalize_phone(raw: str) -> str:
+    """Return exactly 10 digits or raise 400. We reject rather than repair —
+    a wrong number silently 'fixed' would send an OTP to a stranger."""
+    digits = "".join(c for c in raw if c.isdigit())
+    if len(digits) != 10:
+        raise HTTPException(status_code=400, detail="phone must be exactly 10 digits")
+    return digits
+
+
+@app.post("/otp/start")
+def otp_start(req: OtpStartRequest) -> Response:
+    """Send an SMS verification code via Twilio Verify."""
+    phone = _normalize_phone(req.phone)
+    config = _twilio_config()
+
+    if config is None:
+        if _dev_bypass_enabled():
+            return JSONResponse({"ok": True})
+        return JSONResponse({"ok": False, "error": "not_configured"}, status_code=503)
+
+    sid, token, service = config
+    try:
+        twilio = httpx.post(
+            f"{TWILIO_VERIFY_BASE}/{service}/Verifications",
+            data={"To": f"+91{phone}", "Channel": "sms"},
+            auth=(sid, token),
+            timeout=10.0,
+        )
+    except httpx.HTTPError:
+        return JSONResponse({"ok": False, "error": "send_failed"}, status_code=503)
+
+    if twilio.is_success:
+        return JSONResponse({"ok": True})
+    if twilio.status_code == 429:
+        return JSONResponse({"ok": False, "error": "rate_limited"}, status_code=429)
+
+    # Map Twilio's own error codes without echoing their payload (may hold PII).
+    twilio_code = None
+    try:
+        twilio_code = twilio.json().get("code")
+    except (ValueError, AttributeError):
+        pass
+    if twilio_code in (20429, 60203):
+        return JSONResponse({"ok": False, "error": "rate_limited"}, status_code=429)
+    if twilio_code == 60200 or twilio.status_code == 400:
+        return JSONResponse({"ok": False, "error": "invalid_phone"}, status_code=400)
+    return JSONResponse({"ok": False, "error": "send_failed"}, status_code=503)
+
+
+@app.post("/otp/verify")
+def otp_verify(req: OtpVerifyRequest) -> Response:
+    """Check the SMS code; only an approved result mints the session.
+
+    On success this reuses the exact /signup logic (write the signup event +
+    set the disha_session cookie), so the browser can never obtain a session
+    without a real approved code.
+    """
+    phone = _normalize_phone(req.phone)
+    code = "".join(c for c in req.code if c.isdigit())
+    if not code:
+        return JSONResponse({"ok": False, "error": "invalid_request"}, status_code=400)
+
+    config = _twilio_config()
+
+    if config is None:
+        if _dev_bypass_enabled():
+            if code != DEV_BYPASS_CODE:
+                return JSONResponse({"ok": False, "error": "invalid_code"}, status_code=400)
+            return _mint_otp_session(phone)
+        return JSONResponse({"ok": False, "error": "not_configured"}, status_code=503)
+
+    sid, token, service = config
+    try:
+        twilio = httpx.post(
+            f"{TWILIO_VERIFY_BASE}/{service}/VerificationCheck",
+            data={"To": f"+91{phone}", "Code": code},
+            auth=(sid, token),
+            timeout=10.0,
+        )
+    except httpx.HTTPError:
+        return JSONResponse({"ok": False, "error": "verify_failed"}, status_code=503)
+
+    approved = False
+    if twilio.is_success:
+        try:
+            approved = twilio.json().get("status") == "approved"
+        except (ValueError, AttributeError):
+            approved = False
+    elif twilio.status_code == 429:
+        return JSONResponse({"ok": False, "error": "rate_limited"}, status_code=429)
+    # A 404 (expired/consumed) or any non-approved status falls through to 400.
+
+    if not approved:
+        return JSONResponse({"ok": False, "error": "invalid_code"}, status_code=400)
+
+    return _mint_otp_session(phone)
+
+
+def _mint_otp_session(phone: str) -> Response:
+    case = f"case_91{phone}"
+    safe = _safe_name(case)
+    response = JSONResponse({"ok": True, "case": safe})
+    _write_signup_and_cookie(safe, phone, response)
+    return response
 
 
 @app.get("/me")

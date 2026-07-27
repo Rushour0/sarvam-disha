@@ -18,32 +18,9 @@ interface SignupCardProps {
   footer?: ReactNode;
 }
 
-// DEMO ONLY: This hardcoded OTP stands in for a real SMS provider and must be
-// replaced before any real user traffic.
-const DEMO_OTP = '123456';
+type OtpResponse = { ok?: boolean; error?: string };
 
-async function persistSignup(caseId: string, phone: string): Promise<void> {
-  const configuredBase = process.env.NEXT_PUBLIC_DISHA_API?.trim();
-  if (!configuredBase) return;
-
-  const base = configuredBase.replace(/\/+$/, '');
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    if (attempt > 0) {
-      await new Promise((resolve) => window.setTimeout(resolve, 750));
-    }
-
-    try {
-      const response = await fetch(`${base}/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ case: caseId, phone }),
-      });
-      if (response.ok) return;
-    } catch {
-      // Local completion is authoritative; retry once without alarming the student.
-    }
-  }
-}
+type ErrorKind = 'none' | 'phone_rate' | 'phone_send' | 'otp_invalid' | 'otp_rate' | 'otp_fail';
 
 export function SignupCard({ prominent, onSignedUp, title, body, footer }: SignupCardProps) {
   const room = useRoomContext();
@@ -56,24 +33,32 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phoneAttempted, setPhoneAttempted] = useState(false);
-  const [otpAttempted, setOtpAttempted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorKind, setErrorKind] = useState<ErrorKind>('none');
   const [saved, setSaved] = useState(false);
   const isPhoneValid = phone.length === 10;
-  const showPhoneError = phoneAttempted && !isPhoneValid;
-  const showOtpError = otpAttempted && otp !== DEMO_OTP;
+  const showPhoneError =
+    (phoneAttempted && !isPhoneValid) || errorKind === 'phone_rate' || errorKind === 'phone_send';
+  const showOtpError =
+    errorKind === 'otp_invalid' || errorKind === 'otp_rate' || errorKind === 'otp_fail';
 
-  const handleSignup = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (step === 'phone') {
-      setPhoneAttempted(true);
-      if (!isPhoneValid) return;
-      setStep('otp');
-      return;
+  const startOtp = async (): Promise<'ok' | 'rate' | 'fail'> => {
+    try {
+      const res = await fetch('/api/disha/otp/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = (await res.json().catch(() => ({}))) as OtpResponse;
+      if (res.ok && data.ok) return 'ok';
+      if (res.status === 429) return 'rate';
+      return 'fail';
+    } catch {
+      return 'fail';
     }
+  };
 
-    setOtpAttempted(true);
-    if (otp !== DEMO_OTP) return;
-
+  const completeSignup = () => {
     const fullPhone = `+91${phone}`;
     const caseId = `case_91${phone}`;
     const entry = { phone: fullPhone, ts: Date.now() };
@@ -100,7 +85,6 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
 
     setSaved(true);
     onSignedUp?.();
-    void persistSignup(caseId, phone);
 
     const payload = new TextEncoder().encode(JSON.stringify({ type: 'signup' }));
     void room.localParticipant
@@ -108,6 +92,63 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
       .catch(() => {
         // The local signup is authoritative when the data channel is unavailable.
       });
+  };
+
+  const handleSignup = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting) return;
+
+    if (step === 'phone') {
+      setPhoneAttempted(true);
+      if (!isPhoneValid) return;
+      setErrorKind('none');
+      setSubmitting(true);
+      const result = await startOtp();
+      setSubmitting(false);
+      if (result === 'ok') {
+        setStep('otp');
+      } else {
+        setErrorKind(result === 'rate' ? 'phone_rate' : 'phone_send');
+      }
+      return;
+    }
+
+    setErrorKind('none');
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/disha/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code: otp }),
+      });
+      const data = (await res.json().catch(() => ({}))) as OtpResponse;
+      if (res.ok && data.ok) {
+        completeSignup();
+      } else if (res.status === 400) {
+        setErrorKind('otp_invalid');
+      } else if (res.status === 429) {
+        setErrorKind('otp_rate');
+      } else {
+        setErrorKind('otp_fail');
+      }
+    } catch {
+      setErrorKind('otp_fail');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (submitting) return;
+    setErrorKind('none');
+    setSubmitting(true);
+    const result = await startOtp();
+    setSubmitting(false);
+    if (result === 'rate') {
+      setErrorKind('otp_rate');
+    } else if (result === 'fail') {
+      setErrorKind('otp_fail');
+    }
   };
 
   if (saved) {
@@ -162,6 +203,8 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
                   const nextPhone = event.target.value.replace(/\D/g, '').slice(0, 10);
                   setPhone(nextPhone);
                   if (nextPhone.length === 10) setPhoneAttempted(false);
+                  if (errorKind === 'phone_rate' || errorKind === 'phone_send')
+                    setErrorKind('none');
                 }}
                 onBlur={() => {
                   if (phone.length > 0 && !isPhoneValid) setPhoneAttempted(true);
@@ -180,12 +223,16 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
             </div>
             {showPhoneError && (
               <p id={phoneErrorId} role="alert" className="text-destructive mt-2 text-xs">
-                कृपया 10 अंकों का सही मोबाइल नंबर डालें।
+                {errorKind === 'phone_rate'
+                  ? 'बहुत अधिक कोशिशें। थोड़ी देर बाद फिर कोशिश करें।'
+                  : errorKind === 'phone_send'
+                    ? 'OTP भेजने में समस्या हुई। थोड़ी देर बाद फिर कोशिश करें।'
+                    : 'कृपया 10 अंकों का सही मोबाइल नंबर डालें।'}
               </p>
             )}
             <Button
               type="submit"
-              disabled={!isPhoneValid}
+              disabled={!isPhoneValid || submitting}
               className="focus-visible:ring-ring mt-2 min-h-11 w-full rounded-full focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               आगे बढ़ें
@@ -200,7 +247,8 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
                 onClick={() => {
                   setStep('phone');
                   setOtp('');
-                  setOtpAttempted(false);
+                  setPhoneAttempted(false);
+                  setErrorKind('none');
                 }}
                 className="text-disha-leaf focus-visible:ring-ring min-h-11 rounded-full px-3 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               >
@@ -218,7 +266,7 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
               value={otp}
               onChange={(event) => {
                 setOtp(event.target.value.replace(/\D/g, '').slice(0, 6));
-                setOtpAttempted(false);
+                if (showOtpError) setErrorKind('none');
               }}
               placeholder="OTP डालें"
               maxLength={6}
@@ -232,20 +280,32 @@ export function SignupCard({ prominent, onSignedUp, title, body, footer }: Signu
               )}
             />
             <p id={otpHintId} className="text-muted-foreground mt-2 text-xs">
-              डेमो OTP: <span className="font-mono font-semibold">123456</span>
+              +91 {phone} पर OTP भेजा गया।
             </p>
             {showOtpError && (
               <p id={otpErrorId} role="alert" className="text-destructive mt-2 text-xs">
-                OTP सही नहीं है। फिर से कोशिश करें।
+                {errorKind === 'otp_rate'
+                  ? 'बहुत अधिक कोशिशें। थोड़ी देर बाद फिर कोशिश करें।'
+                  : errorKind === 'otp_fail'
+                    ? 'अभी पूरा नहीं हो पाया। थोड़ी देर बाद फिर कोशिश करें।'
+                    : 'OTP सही नहीं है। फिर से कोशिश करें।'}
               </p>
             )}
             <Button
               type="submit"
-              disabled={otp.length !== 6}
+              disabled={otp.length !== 6 || submitting}
               className="focus-visible:ring-ring mt-2 min-h-11 w-full rounded-full focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               OTP सत्यापित करें
             </Button>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={submitting}
+              className="text-disha-leaf focus-visible:ring-ring mt-2 min-h-11 rounded-full px-3 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            >
+              OTP फिर से भेजें
+            </button>
           </>
         )}
       </form>

@@ -5,21 +5,25 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/shadcn/utils';
 
-// DEMO ONLY: mirrors the hardcoded OTP in signup-card.tsx; both stand in for a
-// real SMS provider and must be replaced before any real user traffic.
-const DEMO_OTP = '123456';
-
 interface LoginCardProps {
   title: string;
   body: string;
 }
 
+interface OtpResponse {
+  ok?: boolean;
+  error?: string;
+}
+
+const SEND_FAILED = 'OTP भेजने में समस्या हुई। थोड़ी देर बाद फिर कोशिश करें।';
+const RATE_LIMITED = 'बहुत अधिक कोशिशें। थोड़ी देर बाद फिर कोशिश करें।';
+
 /**
  * Phone + OTP login for pages that live outside a call — /me and /explore.
  *
  * Unlike SignupCard this has no LiveKit room to notify; it only needs the
- * signed session cookie that POST /api/disha/signup sets, then a server
- * re-render to pick it up.
+ * signed session cookie that POST /api/disha/otp/verify sets server-side, then
+ * a server re-render to pick it up.
  */
 export function LoginCard({ title, body }: LoginCardProps) {
   const router = useRouter();
@@ -30,48 +34,93 @@ export function LoginCard({ title, body }: LoginCardProps) {
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const isPhoneValid = phone.length === 10;
+
+  // Kicks off (or resends) the OTP send. Returns true when the code was sent.
+  const startOtp = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/disha/otp/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = (await response.json()) as OtpResponse;
+      if (response.ok && data.ok) {
+        return true;
+      }
+      setError(data.error === 'rate_limited' ? RATE_LIMITED : SEND_FAILED);
+      return false;
+    } catch {
+      setError(SEND_FAILED);
+      return false;
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
+    setNotice('');
 
     if (step === 'phone') {
       if (!isPhoneValid) {
         setError('कृपया 10 अंकों का सही मोबाइल नंबर डालें।');
         return;
       }
-      setStep('otp');
-      return;
-    }
-
-    if (otp !== DEMO_OTP) {
-      setError('OTP सही नहीं है। फिर से कोशिश करें।');
+      setSubmitting(true);
+      try {
+        if (await startOtp()) {
+          setStep('otp');
+        }
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
     setSubmitting(true);
     const caseId = `case_91${phone}`;
     try {
-      const response = await fetch('/api/disha/signup', {
+      const response = await fetch('/api/disha/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ case: caseId, phone }),
+        body: JSON.stringify({ phone, code: otp }),
       });
-      if (!response.ok) {
-        setError('अभी login नहीं हो पाया। थोड़ी देर बाद फिर कोशिश करें।');
+      const data = (await response.json()) as OtpResponse;
+      if (response.ok && data.ok) {
+        // The device now resumes this student's case in the next call too.
+        try {
+          window.localStorage.setItem('disha.case', caseId);
+        } catch {
+          // Login still completes when storage is unavailable.
+        }
+        // The cookie is set by the server response, so the re-render logs in.
+        router.refresh();
         return;
       }
-      // The device now resumes this student's case in the next call too.
-      try {
-        window.localStorage.setItem('disha.case', caseId);
-      } catch {
-        // Login still completes when storage is unavailable.
+      if (data.error === 'invalid_code') {
+        setError('OTP सही नहीं है। फिर से कोशिश करें।');
+      } else if (data.error === 'rate_limited') {
+        setError(RATE_LIMITED);
+      } else {
+        setError('अभी login नहीं हो पाया। थोड़ी देर बाद फिर कोशिश करें।');
       }
-      router.refresh();
     } catch {
       setError('अभी login नहीं हो पाया। थोड़ी देर बाद फिर कोशिश करें।');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError('');
+    setNotice('');
+    setSubmitting(true);
+    try {
+      if (await startOtp()) {
+        setNotice('भेज दिया');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -106,10 +155,10 @@ export function LoginCard({ title, body }: LoginCardProps) {
             </div>
             <Button
               type="submit"
-              disabled={!isPhoneValid}
+              disabled={!isPhoneValid || submitting}
               className="focus-visible:ring-ring mt-2 min-h-11 w-full rounded-full focus-visible:ring-2 focus-visible:ring-offset-2"
             >
-              आगे बढ़ें
+              {submitting ? 'भेज रहे हैं…' : 'आगे बढ़ें'}
             </Button>
           </>
         ) : (
@@ -122,6 +171,7 @@ export function LoginCard({ title, body }: LoginCardProps) {
                   setStep('phone');
                   setOtp('');
                   setError('');
+                  setNotice('');
                 }}
                 className="text-disha-leaf focus-visible:ring-ring min-h-11 rounded-full px-3 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               >
@@ -148,7 +198,7 @@ export function LoginCard({ title, body }: LoginCardProps) {
               )}
             />
             <p id={otpHintId} className="text-muted-foreground mt-2 text-xs">
-              डेमो OTP: <span className="font-mono font-semibold">123456</span>
+              +91 {phone} पर OTP भेजा गया।
             </p>
             <Button
               type="submit"
@@ -157,6 +207,17 @@ export function LoginCard({ title, body }: LoginCardProps) {
             >
               {submitting ? 'जाँच हो रही है…' : 'OTP सत्यापित करें'}
             </Button>
+            <div className="mt-2 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => void handleResend()}
+                disabled={submitting}
+                className="text-disha-leaf focus-visible:ring-ring min-h-11 rounded-full px-3 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
+              >
+                OTP फिर से भेजें
+              </button>
+              {notice && <span className="text-muted-foreground text-xs">{notice}</span>}
+            </div>
           </>
         )}
         {error && (
