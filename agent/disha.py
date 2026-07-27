@@ -22,6 +22,7 @@ CAREER_TREE_PATH = REPO_ROOT / "data" / "career_tree.json"
 HANDBOOK_PATH = REPO_ROOT / "data" / "handbook_chunks.json"
 PATHWAY_TREE_PATH = REPO_ROOT / "data" / "pathway_tree.json"
 SCHOLARSHIPS_PATH = REPO_ROOT / "data" / "scholarships.json"
+OPPORTUNITIES_PATH = REPO_ROOT / "data" / "opportunities.json"
 CASES_DIR = AGENT_DIR / "cases"
 
 with CAREER_TREE_PATH.open(encoding="utf-8") as career_tree_file:
@@ -37,6 +38,9 @@ PATHWAY_NODES: list[dict[str, object]] = list(PATHWAY_TREE.get("nodes", []))
 
 with SCHOLARSHIPS_PATH.open(encoding="utf-8") as scholarships_file:
     SCHOLARSHIPS: list[dict[str, object]] = json.load(scholarships_file)
+
+with OPPORTUNITIES_PATH.open(encoding="utf-8") as opportunities_file:
+    OPPORTUNITIES: list[dict[str, object]] = json.load(opportunities_file)
 
 
 ConstraintName = Literal[
@@ -152,6 +156,45 @@ _SCHOLARSHIP_BM25 = retrieval.BM25(
 
 def scholarship_key(document: dict[str, object]) -> str:
     return str(document["id"])
+
+
+def _opportunity_text(opp: dict[str, object]) -> str:
+    parts = [
+        str(opp["name"]),
+        str(opp["provider"]),
+        str(opp.get("what", "")),
+        str(opp.get("level", "")),
+    ]
+    parts.extend(str(tag) for tag in opp.get("applies_to", []))
+    return ". ".join(part for part in parts if part)
+
+
+OPPORTUNITY_DOCUMENTS = [
+    {**opp, "text": _opportunity_text(opp)} for opp in OPPORTUNITIES
+]
+_OPPORTUNITY_BM25 = retrieval.BM25(
+    [str(document["text"]) for document in OPPORTUNITY_DOCUMENTS]
+)
+
+
+def opportunity_key(document: dict[str, object]) -> str:
+    return str(document["id"])
+
+
+def _present_opportunity(opp: dict[str, object]) -> dict[str, object]:
+    """Only fields with a sourced value, so nothing invites invention."""
+    result: dict[str, object] = {
+        "name": opp["name"],
+        "provider": opp["provider"],
+        "what": opp["what"],
+        "cost": opp["cost"],
+        "source_url": opp["source_url"],
+    }
+    if opp.get("level"):
+        result["level"] = opp["level"]
+    if opp.get("eligibility"):
+        result["eligibility"] = opp["eligibility"]
+    return result
 
 
 def _present_scholarship(scheme: dict[str, object]) -> dict[str, object]:
@@ -571,11 +614,17 @@ found through search_careers; it never introduces a career that search_careers
 did not return. Some chunks are rough print extracts: read only the parts that
 form clean sentences and skip any garbled fragment rather than speaking it.
 
-Your four lookup tools — search_careers, search_handbook, find_scholarships,
-recall_memory — are yours to reach for whenever they would help. There is no
-required order and no permission to wait for. If a student mentions money, look
-up scholarships. If they ask how long something takes, check the handbook. Do
-it mid-thought rather than promising to find out.
+Your lookup tools — search_careers, search_handbook, find_scholarships,
+find_opportunities, recall_memory — are yours to reach for whenever they would
+help. There is no required order and no permission to wait for. If a student
+mentions money, look up scholarships. If they ask how long something takes,
+check the handbook. When a student wants to learn or build a skill, fears a
+path is too long or costly, or needs a concrete next step toward an interest,
+call find_opportunities and name one real free option they can start now
+(NPTEL, SWAYAM, Skill India and the like) — a free course or skilling
+programme is often the honest next step for a student a degree cannot reach.
+Speak only what the tool returns, including its cost note, and never invent a
+fee. Do it mid-thought rather than promising to find out.
 
 Money rule: say only what find_scholarships returns, never what you know.
 search_careers results often already carry a `scholarships` list — use it
@@ -855,6 +904,42 @@ class Disha(Agent):
             }
         )
         return results[:4]
+
+    @function_tool
+    async def find_opportunities(self, query: str) -> list[dict[str, object]]:
+        """Find real free courses, skilling programmes and career resources.
+
+        Use whenever a student wants to learn or build a skill, worries a path
+        is too long or costly, asks "how do I learn X", or needs a concrete
+        next step toward an interest. Returns only real, free (or free-to-learn)
+        Indian platforms such as NPTEL, SWAYAM and Skill India.
+
+        Args:
+            query: What the student wants to learn or do, e.g. "free coding
+                course", "skill training after 12th", "learn design",
+                "job-ready skills without a degree".
+        """
+        if self._safety_lock:
+            return [{"locked": True, "instruction": CAREER_TOOLS_LOCKED}]
+        matched = await retrieval.hybrid_search(
+            query=query,
+            documents=OPPORTUNITY_DOCUMENTS,
+            text_key="text",
+            key_of=opportunity_key,
+            collection=retrieval.OPPORTUNITIES_COLLECTION,
+            limit=4,
+            bm25=_OPPORTUNITY_BM25,
+            sparse_query=" ".join(_content_terms(query)),
+        )
+        results = [_present_opportunity(opp) for opp in matched]
+        await self._event_sink.emit(
+            {
+                "type": "opportunity",
+                "query": query,
+                "opportunities": results,
+            }
+        )
+        return results
 
     @function_tool
     async def save_constraint(self, name: ConstraintName, value: str) -> str:

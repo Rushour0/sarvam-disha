@@ -43,6 +43,7 @@ EMBED_DIM = int(os.environ.get("DISHA_EMBED_DIM", "1536"))
 HANDBOOK_COLLECTION = "disha_handbook"
 CAREERS_COLLECTION = "disha_careers"
 SCHOLARSHIPS_COLLECTION = "disha_scholarships"
+OPPORTUNITIES_COLLECTION = "disha_opportunities"
 
 _QDRANT_TIMEOUT = float(os.environ.get("QDRANT_TIMEOUT", "3.0"))
 _RRF_K = 20  # fabri's value: two short pools, so the web-scale 60 flattens rank

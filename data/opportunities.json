@@ -1,0 +1,74 @@
+[
+  {
+    "id": "nptel",
+    "name": "NPTEL",
+    "provider": "IITs and IISc (Ministry of Education, Govt of India)",
+    "level": "Class 12 pass, college students and working professionals",
+    "cost": "Free to learn; an optional proctored exam gives a certificate for a fee (check the site)",
+    "what": "Over 2500 free online video courses across engineering, science, management and humanities. The certificate is recognised by many colleges and recruiters.",
+    "eligibility": "Open to anyone; no entry requirement",
+    "source_url": "https://nptel.ac.in/",
+    "fetched_on": "2026-07-27",
+    "applies_to": ["free_learning", "upskilling", "college", "engineering", "science", "technology", "management", "commerce", "arts", "jobs"]
+  },
+  {
+    "id": "swayam",
+    "name": "SWAYAM",
+    "provider": "Ministry of Education, Govt of India",
+    "level": "Class 9 to postgraduate, and working professionals",
+    "cost": "Free to learn; a small optional fee for a proctored certificate. Some courses carry academic credit.",
+    "what": "The government's national MOOC platform, hosting courses from IITs, IGNOU, UGC and NCERT — from school level up to postgraduate — in many subjects.",
+    "eligibility": "Open to all",
+    "source_url": "https://swayam.gov.in/",
+    "fetched_on": "2026-07-27",
+    "applies_to": ["free_learning", "upskilling", "school", "college", "science", "commerce", "arts", "engineering", "credit"]
+  },
+  {
+    "id": "skill_india_digital",
+    "name": "Skill India Digital Hub",
+    "provider": "Ministry of Skill Development and Entrepreneurship (MSDE)",
+    "level": "Youth, students and job-seekers",
+    "cost": "Free courses and certificates",
+    "what": "A government platform for free, job-ready skill courses across sectors like IT, AI and trades, with digital certificates and links to apprenticeships and jobs.",
+    "eligibility": "Open to Indian youth",
+    "source_url": "https://www.skillindiadigital.gov.in/",
+    "fetched_on": "2026-07-27",
+    "applies_to": ["free_learning", "skilling", "vocational", "jobs", "it", "technology", "apprenticeship"]
+  },
+  {
+    "id": "pmkvy",
+    "name": "Pradhan Mantri Kaushal Vikas Yojana (PMKVY)",
+    "provider": "MSDE / National Skill Development Corporation (NSDC)",
+    "level": "Youth, including those who left formal education",
+    "cost": "Free short-term skill training with certification",
+    "what": "The flagship free skill-training scheme: hands-on vocational training, an industry-recognised certificate, and placement support.",
+    "eligibility": "Indian youth, including school dropouts",
+    "source_url": "https://www.pmkvyofficial.org/",
+    "fetched_on": "2026-07-27",
+    "applies_to": ["free_learning", "skilling", "vocational", "jobs", "dropout"]
+  },
+  {
+    "id": "diksha",
+    "name": "DIKSHA",
+    "provider": "NCERT, Ministry of Education",
+    "level": "School students (Class 1 to 12) and teachers",
+    "cost": "Free",
+    "what": "The national school platform with textbooks, video lessons and practice aligned to CBSE and state boards, available in many Indian languages.",
+    "eligibility": "School students and teachers",
+    "source_url": "https://diksha.gov.in/",
+    "fetched_on": "2026-07-27",
+    "applies_to": ["free_learning", "school"]
+  },
+  {
+    "id": "ncs",
+    "name": "National Career Service (NCS)",
+    "provider": "Ministry of Labour and Employment",
+    "level": "Students and job-seekers",
+    "cost": "Free",
+    "what": "A government portal for job listings, free career counselling, and links to skill training and apprenticeships.",
+    "eligibility": "Open to all",
+    "source_url": "https://www.ncs.gov.in/",
+    "fetched_on": "2026-07-27",
+    "applies_to": ["jobs", "career_guidance", "apprenticeship", "free_learning"]
+  }
+]
